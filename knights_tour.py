@@ -176,7 +176,7 @@ class Tour(object):
             possible_moves = self.knight.get_possible_moves(previous_move)
             #if no moves are returned, we see if we are done, or we set the knight back a move
             previous_move = self._check_moves(possible_moves)
-            if previous_move == "Finished":
+            if type(previous_move) is str and "Finished" == previous_move:
                 return self.knight.visited_positions
             move_combos = [] #this will hold all 2 move combinations to be selected by the knight by weight
             for i in possible_moves:
@@ -189,20 +189,27 @@ class Tour(object):
                     #print "\t", j
                     moves = move + (j,)   
                 move_combos.append(moves)
-            good_moves = self._get_weights(move_combos)
-            #print good_moves
-            for move in good_moves:
-                #print move
-                self.knight.record_visited_position(move)
-            previous_move = good_moves[0]
-            self.knight.set_position(good_moves[1])    
-                
+            if move_combos == []:
+                print "retracing"
+                previous_move = self.knight.retrace()
+            else:    
+                previous_move = self._choose_best_move(move_combos)
+
+    def _choose_best_move(self, move_combos):
+        good_moves = self._get_weights(move_combos)
+        #print good_moves
+        for move in good_moves:
+            print "Moving to", move
+            self.knight.record_visited_position(move)
+        previous_move = good_moves[0]
+        self.knight.set_position(good_moves[1])    
+        return previous_move        
 
     def _check_moves(self, possible_moves):
         previous_move = None
         if len(possible_moves) == 0:
-            if len(self.knight.visited_positions) < board.size:
-                previous_move = knight.retrace()
+            if len(self.knight.visited_positions) < self.board.size:
+                previous_move = self.knight.retrace()
                 self._check_tour(previous_move)
             else:
                 return "Finished"
@@ -223,7 +230,7 @@ class Tour(object):
             weight = i[0].weight + i[1].weight
             weights[weight] = i
         #print "\t", weights    
-        return weights[min(weights)] #maybe i want max here but I doubt it
+        return weights.get(min(weights),None) #maybe i want max here but I doubt it
 
 def main(rows=6, columns=6, starting_location="2.6", verbose=False):
     if rows == None:
