@@ -164,6 +164,23 @@ def get_possible_moves(rows, columns, row, column):
         positions.append(p.coordinate)
     return positions
 
+def get_possible_moves2(rows, columns, row1, column1, row2, column2):
+    """
+    >>> get_possible_moves2(rows=8, columns=8, row1=4, column1=5, row2=5, column2=7)
+    [(5, 3), (3, 7), (3, 3), (6, 6), (6, 4), (2, 6), (2, 4)]
+
+    (5, 7) should not appear
+
+    """
+    board = Board(rows, columns)
+    position1 = Position(row1, column1, board)
+    position2 = Position(row2, column2, board)
+    knight = Knight(position1)
+    positions = []
+    for p in knight.get_possible_moves(position2):
+        positions.append(p.coordinate)
+    return positions
+
 def create_moves(rows, columns, row, column):
     """
     Test creating all knight moves
@@ -242,7 +259,9 @@ def get_weights_from_tour(rows, columns, position_coordinate, row1, column1, row
     tour = Tour(rows, columns, position_coordinate)
     position1 = Position(row1, column1, tour.board)
     position2 = Position(row2, column2, tour.board)
-    position_tuple = tour._get_weights([(position1, position2)])
+    position3 = Position(row1-1, column1-1, tour.board)
+    position4 = Position(row2-1, column2-1, tour.board)
+    position_tuple = tour._get_weights([(position1, position2),(position3,position4)])
     return position_tuple[0].weight + position_tuple[1].weight
 
 

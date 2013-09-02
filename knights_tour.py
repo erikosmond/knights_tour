@@ -105,7 +105,7 @@ class ChessPiece(object):
         possible_moves = [ ] 
         for i in self.moves:
             possible_position = self.current_position.get_new_position(i[0], i[1])
-            if self._valid_position(possible_position) and possible_position != previous_move:
+            if self._valid_position(possible_position) and not possible_position == previous_move:
                 possible_moves.append(possible_position)
         return possible_moves       
         
@@ -166,38 +166,42 @@ class Tour(object):
 
     def tour(self):
         previous_move = self.start_position #or None
-        knight = Knight(self.start_position)
-        while len(knight.visited_positions) < self.board.size:
+        self.knight = Knight(self.start_position)
+        while len(self.knight.visited_positions) < self.board.size:
+            """
+            for i in knight.visited_positions:
+                print "\t\t", i
+            """
             #return moves that will keep the knight on the board and not backtrack
-            possible_moves = knight.get_possible_moves(previous_move)
+            possible_moves = self.knight.get_possible_moves(previous_move)
             #if no moves are returned, we see if we are done, or we set the knight back a move
             previous_move = self._check_moves(possible_moves)
             if previous_move == "Finished":
-                return knight.visited_positions
+                return self.knight.visited_positions
             move_combos = [] #this will hold all 2 move combinations to be selected by the knight by weight
             for i in possible_moves:
-                moves = (knight.current_position,) #each of these will hold a 2 move combination
-                position = knight.current_position.get_new_position(i.row, i.column)
-                if position == None:
-                    continue
-                moves = moves + (position,)
-                trial_knight1 = Knight(position)                
-                k1_possible_moves = trial_knight1.get_possible_moves(position)
+                #print knight.get_current_position(), i
+                move = (i,) #each of these will hold a 2 move combination
+                trial_knight1 = Knight(i)
+                trial_knight1.visited_positions = self.knight.visited_positions[:]
+                k1_possible_moves = trial_knight1.get_possible_moves(self.knight.get_current_position())                
                 for j in k1_possible_moves:
-                    position1 = trial_knight1.current_position.get_new_position(j.row, j.column)
-                    trial_knight1.set_position(position1)
-                    moves = moves + (position,)
-                    move_combos.append(moves)
+                    #print "\t", j
+                    moves = move + (j,)   
+                move_combos.append(moves)
             good_moves = self._get_weights(move_combos)
+            #print good_moves
             for move in good_moves:
-                knight.record_visited_position(move)
-            knight.set_position(good_moves[1])    
+                #print move
+                self.knight.record_visited_position(move)
+            previous_move = good_moves[0]
+            self.knight.set_position(good_moves[1])    
                 
 
     def _check_moves(self, possible_moves):
         previous_move = None
         if len(possible_moves) == 0:
-            if len(knight.visited_positions) < board.size:
+            if len(self.knight.visited_positions) < board.size:
                 previous_move = knight.retrace()
                 self._check_tour(previous_move)
             else:
@@ -214,13 +218,14 @@ class Tour(object):
         weights = {}
         for i in move_combos:
             #print "getting weights"
-            #print i
+            #print "one move combo", i
             #print i[0], i[1]
             weight = i[0].weight + i[1].weight
             weights[weight] = i
+        #print "\t", weights    
         return weights[min(weights)] #maybe i want max here but I doubt it
 
-def main(rows=8, columns=8, starting_location="4.5", verbose=False):
+def main(rows=6, columns=6, starting_location="2.6", verbose=False):
     if rows == None:
         rows = raw_input("how many rows would you like on the chess board?\n")
         if rows.lower() == "e" or rows.lower() == "exit":
@@ -249,9 +254,10 @@ if __name__ == "__main__":
     main()
 #"""
 
-def test_data(rows=8, columns=8, row=4, column=5):
+def test_data(rows=6, columns=6, row=2, column=6, start="4.5"):
+    tour = Tour(rows, columns, start)
     board = Board(rows, columns)
     position = Position(row, column, board)
     knight = Knight(position)
-    return board, position, knight
+    return tour, board, position, knight
 
