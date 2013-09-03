@@ -93,8 +93,19 @@ class ChessPiece(object):
         self.visited_positions.append(position)
         
     def retrace(self):
-        previous_position = self.visited_positions.pop()
-        self.set_position(self.visited_positions[-1])
+        
+        failed_position = self.visited_positions.pop()
+        previous_position = self.visited_positions[-1]
+        failed_positions = self.trials.get(previous_position, set())
+        failed_positions.add(failed_position)
+        self.set_position(previous_position)
+        print "Retracing to ", self.visited_positions[-1]
+        """
+        for i in self.trials:
+            print "\t", i
+            for j in self.trials.get(i,[]):
+                print "\t\t", j
+        """
         return previous_position
     
     def reset_possible_positions(self):
@@ -114,7 +125,8 @@ class ChessPiece(object):
         if not position.fits_on_board:
             return False
         #depending on how many moves in advance I go, I might not need this for loop below, I'll still need the visited positions for loop though
-        for i in self.possible_positions:
+        failed_positions = self.trials.get(self.get_current_position(),set())
+        for i in failed_positions:
             if position == i:
                 return False
         for i in self.visited_positions:
@@ -133,6 +145,7 @@ class Knight(ChessPiece):
         if ChessPiece.knight_moves == None:
             ChessPiece.knight_moves = self.create_moves()
         self.moves = ChessPiece.knight_moves
+        self.trials = {}#coordinate: [failed_coordinate1, failed_coordinate2]
             
 
 class Tour(object):
@@ -142,7 +155,6 @@ class Tour(object):
         self.start_position = self._generate_start_position(start_position)
         self.retrace = 0 #just in case I want to set up a retrace counter
         self.verbose = verbose
-        #self.trials = {}#coordinate: [failed_coordinate1, failed_coordinate2]
 
     def _generate_start_position(self, start_position):
         error1 = "The %s value of your start position must be an integer.  Please enter the starting location in the following format: 4.5"
@@ -164,7 +176,7 @@ class Tour(object):
         assert 0 < column <= self.board.columns, error2 %("column","second")       
         return Position(row, column, self.board)
 
-    def tour(self):
+    def start_tour(self):
         previous_move = self.start_position #or None
         self.knight = Knight(self.start_position)
         while len(self.knight.visited_positions) < self.board.size:
@@ -175,26 +187,31 @@ class Tour(object):
             #return moves that will keep the knight on the board and not backtrack
             possible_moves = self.knight.get_possible_moves(previous_move)
             #if no moves are returned, we see if we are done, or we set the knight back a move
-            previous_move = self._check_moves(possible_moves)
+            previous_move = self._check_if_finished(possible_moves)
             if type(previous_move) is str and "Finished" == previous_move:
                 return self.knight.visited_positions
-            move_combos = [] #this will hold all 2 move combinations to be selected by the knight by weight
-            for i in possible_moves:
-                #print knight.get_current_position(), i
-                move = (i,) #each of these will hold a 2 move combination
-                trial_knight1 = Knight(i)
-                trial_knight1.visited_positions = self.knight.visited_positions[:]
-                k1_possible_moves = trial_knight1.get_possible_moves(self.knight.get_current_position())                
-                for j in k1_possible_moves:
-                    #print "\t", j
-                    moves = move + (j,)   
-                move_combos.append(moves)
+            move_combos = self._create_second_moves(possible_moves)    
             if move_combos == []:
-                print "retracing"
                 previous_move = self.knight.retrace()
             else:    
                 previous_move = self._choose_best_move(move_combos)
 
+    #untested
+    def _create_second_moves(self, possible_moves):
+        move_combos = [] #this will hold all 2 move combinations to be selected by the knight by weight
+        for i in possible_moves:
+            #print knight.get_current_position(), i
+            move = (i,) #each of these will hold a 2 move combination
+            trial_knight1 = Knight(i)
+            trial_knight1.visited_positions = self.knight.visited_positions[:]
+            k1_possible_moves = trial_knight1.get_possible_moves(self.knight.get_current_position())                
+            for j in k1_possible_moves:
+                #print "\t", j
+                moves = move + (j,)   
+            move_combos.append(moves)
+        return move_combos
+
+    #untested
     def _choose_best_move(self, move_combos):
         good_moves = self._get_weights(move_combos)
         #print good_moves
@@ -202,10 +219,17 @@ class Tour(object):
             print "Moving to", move
             self.knight.record_visited_position(move)
         previous_move = good_moves[0]
-        self.knight.set_position(good_moves[1])    
+        if good_moves[1] in self.knight.trials.get(previous_move, set()):
+            previous_move = self.knight.retrace()
+        else:
+            self.knight.set_position(good_moves[1])
+        failed_moves = self.knight.trials.get(previous_move, set())
+        failed_moves.add(good_moves[1])
+        self.knight.trials[previous_move] = failed_moves
+        
         return previous_move        
 
-    def _check_moves(self, possible_moves):
+    def _check_if_finished(self, possible_moves):
         previous_move = None
         if len(possible_moves) == 0:
             if len(self.knight.visited_positions) < self.board.size:
@@ -252,7 +276,7 @@ def main(rows=6, columns=6, starting_location="2.6", verbose=False):
         else:
             verbose = False
     t = Tour(rows, columns, starting_location, verbose)
-    result = t.tour()
+    result = t.start_tour()
     
 #"""
 if __name__ == "__main__":
