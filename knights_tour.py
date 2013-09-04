@@ -86,18 +86,37 @@ class ChessPiece(object):
     def get_current_position(self):
         return self.current_position
         
-    def set_position(self, position):
-        self.current_position = position
-        
+    def get_failed_moves(self, position):
+        return self.trials.get(position, set())
+
     def record_visited_position(self, position):
-        self.visited_positions.append(position)
+        if position not in self.visited_positions:
+            self.visited_positions.append(position)
+            return True
+
+    def set_position(self, position):
+        added = self.record_visited_position(position)
+        #self.record_failed_position(self.current_position, position)
+        self.current_position = position
+        return added
+        
+    def record_failed_position(self, old_position, new_position):
+        failed_moves = self.get_failed_moves(old_position)
+        """
+        print "\told position", old_position
+        for i in failed_moves:
+            print "\t\t failed move", i
+        """
+        failed_moves.add(new_position)
+        self.trials[old_position] = failed_moves
         
     def retrace(self):
         
         failed_position = self.visited_positions.pop()
         previous_position = self.visited_positions[-1]
-        failed_positions = self.trials.get(previous_position, set())
-        failed_positions.add(failed_position)
+        self.record_failed_position(previous_position, failed_position) #this might not be necissary as this should have already been recorded, or I only use this, and get rid of setting failed positions when I move the knight in the first place to be a little less confusing
+#        failed_positions = self.trials.get(previous_position, set())
+#        failed_positions.add(failed_position)
         self.set_position(previous_position)
         print "Retracing to ", self.visited_positions[-1]
         """
@@ -176,14 +195,63 @@ class Tour(object):
         assert 0 < column <= self.board.columns, error2 %("column","second")       
         return Position(row, column, self.board)
 
-    def start_tour(self):
+    def run(self):
         previous_move = self.start_position #or None
         self.knight = Knight(self.start_position)
         while len(self.knight.visited_positions) < self.board.size:
-            """
-            for i in knight.visited_positions:
-                print "\t\t", i
-            """
+            possible_moves = self.knight.get_possible_moves(previous_move)
+            if len(possible_moves) == 0:
+                previous_move = self._end_of_game(possible_moves)
+                if type(previous_move) == type(self.knight.current_position):
+                    continue
+                elif self._end_of_game(possible_moves) == "Finished":
+                    return self.knight.visited_positions
+            else:
+                move_combos = self._create_second_moves(possible_moves)
+                if len(move_combos) == 0:
+                    if self.knight.set_position(self.knight.current_position) == True:
+                        if self._end_of_game(move_combos):
+                            return self.knight.visited_positions
+                        else:
+                            pass #not sure what to do here
+                    else:
+                        previous_move = self.knight.retrace()
+                        self._check_tour(previous_move)
+                        continue
+                else:
+                    previous_move = self._choose_best_move(move_combos)
+            
+        """
+find possible knights moves
+if possible moves == 0
+    if end of game
+        return
+    else
+        self knight retrace
+        continue
+else
+    find secondary knight moves
+    if possible moves ==0:
+        if True == self.knight.set_position(position)
+            if end of game:
+                exit or return
+            else
+                ??what do i do here?
+        else
+            self.knight.retrace
+            continue
+move knight to the two positions
+    make sure the knight can go there
+    if the knight can go there, return true and add the knight
+    if he can't go there return false so i can retrace at that moment
+    
+
+
+        """
+    def old_tour(self):        
+        previous_move = self.start_position #or None
+        self.knight = Knight(self.start_position)
+        while len(self.knight.visited_positions) < self.board.size:
             #return moves that will keep the knight on the board and not backtrack
             possible_moves = self.knight.get_possible_moves(previous_move)
             #if no moves are returned, we see if we are done, or we set the knight back a move
@@ -196,6 +264,13 @@ class Tour(object):
             else:    
                 previous_move = self._choose_best_move(move_combos)
 
+    def _end_of_game(self, possible_moves):
+        if len(possible_moves) == 0 and len(self.knight.visited_positions) == self.board.size:
+            return "Finished"
+        else:
+            return self.knight.retrace()
+        
+
     #untested
     def _create_second_moves(self, possible_moves):
         move_combos = [] #this will hold all 2 move combinations to be selected by the knight by weight
@@ -204,7 +279,13 @@ class Tour(object):
             move = (i,) #each of these will hold a 2 move combination
             trial_knight1 = Knight(i)
             trial_knight1.visited_positions = self.knight.visited_positions[:]
-            k1_possible_moves = trial_knight1.get_possible_moves(self.knight.get_current_position())                
+            k1_possible_moves = trial_knight1.get_possible_moves(self.knight.get_current_position())
+            if len(k1_possible_moves) == 0:
+                previous_move = self._end_of_game(possible_moves)
+                if type(previous_move) == type(self.knight.current_position):
+                    continue
+                elif self._end_of_game(possible_moves) == "Finished":
+                    return self.knight.visited_positions
             for j in k1_possible_moves:
                 #print "\t", j
                 moves = move + (j,)   
@@ -217,7 +298,8 @@ class Tour(object):
         #print good_moves
         for move in good_moves:
             print "Moving to", move
-            self.knight.record_visited_position(move)
+            self.knight.set_position(move)
+            
         previous_move = good_moves[0]
         if good_moves[1] in self.knight.trials.get(previous_move, set()):
             previous_move = self.knight.retrace()
@@ -233,9 +315,10 @@ class Tour(object):
         previous_move = None
         if len(possible_moves) == 0:
             if len(self.knight.visited_positions) < self.board.size:
-                previous_move = self.knight.retrace()
+                previous_move = self.knight.retrace() #or do last move here visited_positions[-1]
                 self._check_tour(previous_move)
             else:
+                self.knight.set_position(previous_move)
                 return "Finished"
         return previous_move
 
@@ -276,7 +359,7 @@ def main(rows=6, columns=6, starting_location="2.6", verbose=False):
         else:
             verbose = False
     t = Tour(rows, columns, starting_location, verbose)
-    result = t.start_tour()
+    result = t.run()
     
 #"""
 if __name__ == "__main__":
