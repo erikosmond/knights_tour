@@ -70,17 +70,14 @@ class Verbose(object):
             print "no solution, but here's what was tried"            
             for i in chess_piece.trials:
                 print "\t", i
-                for j in chess_piece.trials[i]:
+                for j in chess_piece.get_failed_moves(i):
                     print "\t\t", j
 
     def retrace(self, chess_piece):
         if self.retrace_switch:
             print "Retracing to ", chess_piece.visited_positions[-1]
         if self.visited_positions_switch:
-            for i in chess_piece.trials:
-                print "\t", i
-                for j in chess_piece.trials.get(i,[]):
-                    print "\t\t", j
+            self.final_positions(chess_piece)
 
     def potential_OBOB(self, tour):
         if self.potential_OBOB_switch:
@@ -100,20 +97,37 @@ class Verbose(object):
 
     def board(self, chess_piece):
         if self.board_switch:
-            board = chess_piece.get_current_position().board
-            for row in board.rows:
-                for column in board.columns:
+            board = chess_piece.get_board()
+            for row in range(1, board.rows+1):
+                for column in range(1, board.columns+1):
+                    knight_present = False
+                    fail_present = False
                     for i in chess_piece.visited_positions:
                         if row == i.row and column == i.column:
-                            print chess_piece.visited_positions.index(i), "\t"
-                        else:
-                            print "x\t"
-                    print "\n"
+                            print chess_piece.visited_positions.index(i), "\t",
+                            knight_present = True
+                            break
+                    if knight_present == True:
+                        continue
+                    for i in chess_piece.trials:
+                        #must convert coordinate back into position; should be able to get rid of the if statement
+                        if type(i) is tuple and len(i) == 2:
+                            i = Position(row=i[0], column=i[1], board=board, verbosity=0) 
+                        for j in chess_piece.get_failed_moves(i):
+                            if row == j.row and column == j.column:
+                                print "F\t",
+                                fail_present = True
+                                break
+                        if fail_present == True:
+                            break
+                    if knight_present == False and fail_present == False:
+                        print "x\t",
+                print "\n"
             raw_input("press any key to continue")
 
-    def possible_moves(self, tour, moves):
+    def possible_moves(self, origin, moves):
         if self.possible_moves_switch:
-            print "possible moves from position", tour.knight.get_current_position()
+            print "possible moves from position", origin
             for move in moves:
                 print "\t", move
                 
@@ -167,8 +181,7 @@ class Position(object):
     def get_new_position(self, row_delta, column_delta):
         new_row = self.row + row_delta
         new_column = self.column + column_delta
-        #new_position = Position(new_row, new_column, self.board, self.verbosity)
-        return Position(new_row, new_column, self.board, self.verbosity.verbose_int) #or return new_position
+        return Position(new_row, new_column, self.board, self.verbosity.verbose_int)
         
     def __eq__(self, other):
         return self.coordinate == other.coordinate #could additionally check to see if the positions are on the same board
@@ -187,10 +200,6 @@ class Position(object):
 class ChessPiece(object):
 
     knight_moves = None
-
-        #I will probably remove this method given that the knight has a position and the position has a board
-    def add_to_board(self, board): 
-        self.board = board
         
     def create_moves(self):
         all_moves = tuple()
@@ -209,9 +218,14 @@ class ChessPiece(object):
         
     def get_current_position(self):
         return self.current_position
+
+    def get_board(self):
+        return self.current_position.board
         
     def get_failed_moves(self, position):
-        return self.trials.get(position, set())
+        if type(position) is tuple:
+            return self.trials.get(position, set()) #this is potentially sloppy code that I should fix
+        return self.trials.get(position.coordinate, set())
 
     def record_visited_position(self, position):
         if position not in self.visited_positions:
@@ -230,8 +244,8 @@ class ChessPiece(object):
         failed_moves = self.get_failed_moves(old_position)
         self.verbosity.failed_position(old_position, failed_moves)
         failed_moves.add(new_position)
-        self.trials[old_position] = failed_moves
-        
+        self.trials[old_position.coordinate] = failed_moves
+
     def retrace(self):
         
         failed_position = self.visited_positions.pop()
@@ -242,13 +256,26 @@ class ChessPiece(object):
             raise GameError()
             
         self.record_failed_position(previous_position, failed_position) #this might not be necissary as this should have already been recorded, or I only use this, and get rid of setting failed positions when I move the knight in the first place to be a little less confusing
-#        failed_positions = self.trials.get(previous_position, set())
+#        failed_positions = self.get_failed_moves(previous_position)
 #        failed_positions.add(failed_position)
         self.set_position(previous_position)
         self.verbosity.retrace(self)
+        #should remove failed positions recursively from failed_position
+        print "removing failed position for", previous_position
+        self.remove_failed_positions(previous_position.coordinate)
         return previous_position
+
+    def remove_failed_positions(self, failed_position):
+        failed_positions = self.get_failed_moves(failed_position)
+        print str(failed_positions), "are the failed positions for", str(failed_position)
+        if failed_positions == set():
+            return
+        else:
+            for i in failed_positions:
+                self.remove_failed_positions(i.coordinate)
+        self.trials[failed_position] = set()
     
-    def reset_possible_positions(self):
+    def reset_possible_positions(self): #I should be able to remove this; do a quick find to be sure
         self.possible_positions = [ ]
 
     #passing previous one into this method should eliminate need for self.possible_positions    
@@ -265,7 +292,15 @@ class ChessPiece(object):
         if not position.fits_on_board:
             return False
         #depending on how many moves in advance I go, I might not need this for loop below, I'll still need the visited positions for loop though
-        failed_positions = self.trials.get(self.get_current_position(),set())
+        failed_positions = self.get_failed_moves(self.get_current_position())
+
+
+        print "current failed positions for ", position 
+        for i in failed_positions:
+            print i
+
+
+        
         for i in failed_positions:
             if position == i:
                 return False
@@ -329,7 +364,7 @@ class Tour(object):
             self.verbosity.progress(count)
             print "previous move", previous_move                
             possible_moves = self.knight.get_possible_moves(previous_move)
-            self.verbosity.possible_moves(self, possible_moves)
+            self.verbosity.possible_moves(self.knight.get_current_position(), possible_moves)
             if len(possible_moves) == 0:
                 previous_move = self._end_of_game(possible_moves)
                 if type(previous_move) == type(self.knight.current_position):
@@ -340,6 +375,7 @@ class Tour(object):
             else:
                 move_combos = self._create_second_moves(possible_moves)
                 if len(move_combos) == 0:
+                    print "move combos len is 0"
                     if self.knight.set_position(self.knight.current_position) == True:
                         if self._end_of_game(move_combos):
                             return self.knight.visited_positions
@@ -365,7 +401,6 @@ class Tour(object):
     def _create_second_moves(self, possible_moves):
         move_combos = [] #this will hold all 2 move combinations to be selected by the knight by weight
         for i in possible_moves:
-            #print knight.get_current_position(), i
             move = (i,) #each of these will hold a 2 move combination
             trial_knight1 = Knight(i, self.verbosity.verbose_int)
             trial_knight1.visited_positions = self.knight.visited_positions[:]
@@ -376,9 +411,8 @@ class Tour(object):
                     continue
                 elif self._end_of_game(possible_moves) == "Finished":
                     return self.knight.visited_positions
-            self.verbosity.possible_moves(self, k1_possible_moves)    
+            self.verbosity.possible_moves(i, k1_possible_moves)    
             for j in k1_possible_moves:
-                #print "\t", j
                 moves = move + (j,)   
             move_combos.append(moves)
         return move_combos
@@ -386,19 +420,20 @@ class Tour(object):
     #untested
     def _choose_best_move(self, move_combos):
         good_moves = self._get_weights(move_combos)
-        self.verbosity.possible_moves(self, good_moves)
+        self.verbosity.possible_moves(self.knight.get_current_position(), good_moves)
         for move in good_moves:
             self.knight.set_position(move)
             
         previous_move = good_moves[0]
-        if good_moves[1] in self.knight.trials.get(previous_move, set()):
+
+        if good_moves[1] in self.knight.get_failed_moves(previous_move):
             previous_move = self.knight.retrace()
+        """
         else:
             self.knight.set_position(good_moves[1])
-        failed_moves = self.knight.trials.get(previous_move, set())
-        failed_moves.add(good_moves[1])
-        self.knight.trials[previous_move] = failed_moves
-        
+        """
+
+        self.knight.record_failed_position(previous_move, good_moves[1])
         return previous_move        
 
     def _check_if_finished(self, possible_moves):
@@ -422,15 +457,11 @@ class Tour(object):
         #the tour will use those two positions with the minimum weight to move the knight
         weights = {}
         for i in move_combos:
-            #print "getting weights"
-            #print "one move combo", i
-            #print i[0], i[1]
             weight = i[0].weight + i[1].weight
-            weights[weight] = i
-        #print "\t", weights    
+            weights[weight] = i   
         return weights.get(min(weights),None) #maybe i want max here but I doubt it
 
-def main(rows=3, columns=3, starting_location="2.3", verbosity=899):
+def main(rows=3, columns=3, starting_location="2.3", verbosity=1023): #was 907
     start_time = time.time()
     if None in [rows, columns, starting_location, verbosity]:
         print "\tEnter 'e' or 'exit' to skip the prompts and exit the program...\n"
@@ -473,8 +504,8 @@ if __name__ == "__main__":
 
 def test_data(rows=3, columns=3, row=2, column=6, start="4.5"):
     tour = Tour(rows, columns, start, verbosity=0)
-    board = Board(rows, columns, tour.verbosity)
-    position = Position(row, column, board, tour.verbosity)
-    knight = Knight(position, tour.verbosity)
+    board = Board(rows, columns, tour.verbosity.verbose_int)
+    position = Position(row, column, board, tour.verbosity.verbose_int)
+    knight = Knight(position, tour.verbosity.verbose_int)
     return tour, board, position, knight
 
