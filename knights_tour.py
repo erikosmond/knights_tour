@@ -1,6 +1,138 @@
+import time
+import logging
+import multiprocessing 
+#I should consider logging so I can view STDOUT and have it write to disk 
+
+class GameError(Exception):
+    def __init__(self):
+        print "tour didn't work"
+    
+class Verbose(object):
+    
+    Initialized = False
+    
+    def __init__(self, verbosity):
+        assert type(verbosity) is int, "verbose takes an integer value of 0-31"
+        self.verbose_int = verbosity
+        self.info = """
+        bit 0[-1](1)    - max/min values
+        bit 1[-2](2)    - retrace
+        bit 2[-3](4)    - visited positions
+        bit 3[-4](8)    - board when it changes
+        bit 4[-5](16)   - every move
+        bit 5[-6](32)   - recording failed position
+        bit 6[-7](64)   - progress (how many moves have been made)
+        bit 7[-8](128)  - potential OBOB
+        bit 8[-9](256)  - possible moves
+        bit 9[-10](512) - final positions
+        """
+        #create an 8bit string representing the verbose type mask
+        self.verbose = bin(verbosity)[2:].zfill(10)
+
+        #values for development and debugging
+        self.min_max_switch = int(self.verbose[-1])
+        self.retrace_switch = int(self.verbose[-2])
+        self.visited_positions_switch = int(self.verbose[-3])
+        self.board_switch = int(self.verbose[-4])
+        self.every_move_switch = int(self.verbose[-5])
+        self.failed_position_switch = int(self.verbose[-6])
+        self.progress_switch = int(self.verbose[-7])
+        self.potential_OBOB_switch = int(self.verbose[-8])
+        self.possible_moves_switch = int(self.verbose[-9])
+
+        #for final user to see resulting position
+        self.final_positions_switch = int(self.verbose[-10])
+
+        self._print_verbose_info()
+        Verbose.Initialized = True
+            
+    def min_max(self, tour, largest_tour):
+        #as the tour progresses, will show the longest tour, and if the tour shrinks to a small size
+        new_max = False
+        if len(tour.knight.visited_positions) > largest_tour:
+            new_max = True
+            largest_tour = len(tour.knight.visited_positions)
+        if self.min_max_switch:
+            if new_max:
+                print "current largest tour", str(largest_tour)
+            elif len(tour.knight.visited_positions) in [1,2,3]:
+                print "size of the tour got pretty small with length ", str(len(tour.knight.visited_positions))
+        return largest_tour
+    
+    def failed_position(self, old_position, failed_moves):
+        if self.failed_position_switch:
+            print "\told position", old_position
+            for i in failed_moves:
+                print "\t\t failed move", i
+
+    def final_positions(self, chess_piece):
+        if self.final_positions_switch:
+            print "no solution, but here's what was tried"            
+            for i in chess_piece.trials:
+                print "\t", i
+                for j in chess_piece.trials[i]:
+                    print "\t\t", j
+
+    def retrace(self, chess_piece):
+        if self.retrace_switch:
+            print "Retracing to ", chess_piece.visited_positions[-1]
+        if self.visited_positions_switch:
+            for i in chess_piece.trials:
+                print "\t", i
+                for j in chess_piece.trials.get(i,[]):
+                    print "\t\t", j
+
+    def potential_OBOB(self, tour):
+        if self.potential_OBOB_switch:
+            if len(tour.knight.visited_positions) in [58,59]:
+                print "possible OBOB with len", len(tour.knight.visited_positions) 
+                for pos in tour.knight.visited_positions:
+                    print pos
+
+    def progress(self, count):
+        if self.progress_switch:                            
+            if count % 100000 == 0:
+                print str(count), "moves tried so far"
+
+    def every_move(self, move):
+        if self.every_move_switch:
+            print "moving to", move
+
+    def board(self, chess_piece):
+        if self.board_switch:
+            board = chess_piece.get_current_position().board
+            for row in board.rows:
+                for column in board.columns:
+                    for i in chess_piece.visited_positions:
+                        if row == i.row and column == i.column:
+                            print chess_piece.visited_positions.index(i), "\t"
+                        else:
+                            print "x\t"
+                    print "\n"
+            raw_input("press any key to continue")
+
+    def possible_moves(self, tour, moves):
+        if self.possible_moves_switch:
+            print "possible moves from position", tour.knight.get_current_position()
+            for move in moves:
+                print "\t", move
+                
+    def _print_verbose_info(self):
+        if self.verbose_int > 0 and self.verbose_int != 512 and Verbose.Initialized == False:
+            print self.info
+            print "current verbose settings...\n"
+            for i in dir(self):
+                value = getattr(self, i)
+                if "switch" in str(i):
+                    spacing = "\t"
+                    for j in range(3-(len(i)/8)):
+                        spacing += "\t"
+                    print i, spacing, getattr(self, i)
+            print "\n"
+
 class Board(object):
 
-    def __init__(self, rows, columns):
+    def __init__(self, rows, columns, verbosity):
         self.rows = int(rows)
         self.columns = int(columns)
         self.size = self.rows * self.columns
@@ -8,6 +140,7 @@ class Board(object):
         #should be represented as a relationship between possible moves and how close it is to the edge of the board
         #due to the weights, this is sort of solely a knight tour problem
         self.moves = {2:2, 3:3, 4:4, 5:6, 6:8} #shows how many moves are possible given how close the position is to the edge of the board
+        self.verbosity = Verbose(verbosity)
 
     def get_weight(self, row, column):
         #for now, if a chess piece is 3 deep, it's weighted the same as all other inner pieces, hence limiting the depth to a max of 3
@@ -19,11 +152,12 @@ class Board(object):
 
 class Position(object):
 
-    def __init__(self, row, column, board):
+    def __init__(self, row, column, board, verbosity):
         self.row = row
         self.column = column
         self.coordinate = (row, column)
         self.board = board
+        self.verbosity = Verbose(verbosity)
         self.fits_on_board = self._check_board()
         if self.fits_on_board:
             self.weight = self.board.get_weight(self.row, self.column)
@@ -33,8 +167,8 @@ class Position(object):
     def get_new_position(self, row_delta, column_delta):
         new_row = self.row + row_delta
         new_column = self.column + column_delta
-        #new_position = Position(new_row, new_column, self.board)
-        return Position(new_row, new_column, self.board) #or return new_position
+        #new_position = Position(new_row, new_column, self.board, self.verbosity)
+        return Position(new_row, new_column, self.board, self.verbosity.verbose_int) #or return new_position
         
     def __eq__(self, other):
         return self.coordinate == other.coordinate #could additionally check to see if the positions are on the same board
@@ -49,16 +183,6 @@ class Position(object):
         if not 0 < self.column <= self.board.columns:
                 return False
         return True
-    
-#just as a test, have position inherit board and see what happens when
-    #create a position with no board, see what happens when i call board attributes
-    #create a board instance, then see what happens on position attrs
-        #then create a position2 instance
-    #create a board2 instance, see what happens for position and position2
-        #create postion 3 and see what happens
-    #python inheret instance vs class
-
-#use ipython to figure out if i can make a position an instance of a board instance, not the class
     
 class ChessPiece(object):
 
@@ -95,36 +219,33 @@ class ChessPiece(object):
             return True
 
     def set_position(self, position):
+        self.verbosity.every_move(position)
         added = self.record_visited_position(position)
         #self.record_failed_position(self.current_position, position)
         self.current_position = position
+        self.verbosity.board(self)
         return added
         
     def record_failed_position(self, old_position, new_position):
         failed_moves = self.get_failed_moves(old_position)
-        """
-        print "\told position", old_position
-        for i in failed_moves:
-            print "\t\t failed move", i
-        """
+        self.verbosity.failed_position(old_position, failed_moves)
         failed_moves.add(new_position)
         self.trials[old_position] = failed_moves
         
     def retrace(self):
         
         failed_position = self.visited_positions.pop()
-        previous_position = self.visited_positions[-1]
+        try:
+            previous_position = self.visited_positions[-1]
+        except:
+            self.verbosity.final_positions(self)
+            raise GameError()
+            
         self.record_failed_position(previous_position, failed_position) #this might not be necissary as this should have already been recorded, or I only use this, and get rid of setting failed positions when I move the knight in the first place to be a little less confusing
 #        failed_positions = self.trials.get(previous_position, set())
 #        failed_positions.add(failed_position)
         self.set_position(previous_position)
-        print "Retracing to ", self.visited_positions[-1]
-        """
-        for i in self.trials:
-            print "\t", i
-            for j in self.trials.get(i,[]):
-                print "\t\t", j
-        """
+        self.verbosity.retrace(self)
         return previous_position
     
     def reset_possible_positions(self):
@@ -157,23 +278,25 @@ class Knight(ChessPiece):
 
     legal_moves = ((1,2),(2,1))
 
-    def __init__(self, position):
+    def __init__(self, position, verbosity):
         self.current_position = position
         self.visited_positions = [self.current_position]
         self.possible_positions = [ ]
         if ChessPiece.knight_moves == None:
             ChessPiece.knight_moves = self.create_moves()
         self.moves = ChessPiece.knight_moves
+        self.verbosity = Verbose(verbosity)
         self.trials = {}#coordinate: [failed_coordinate1, failed_coordinate2]
             
 
 class Tour(object):
 
-    def __init__(self, rows, columns, start_position, verbose=True):
-        self.board = Board(rows, columns)
+    def __init__(self, rows, columns, start_position, verbosity=0):
+        self.verbosity = Verbose(verbosity)
+        self.board = Board(rows, columns, self.verbosity.verbose_int)
         self.start_position = self._generate_start_position(start_position)
         self.retrace = 0 #just in case I want to set up a retrace counter
-        self.verbose = verbose
+        
 
     def _generate_start_position(self, start_position):
         error1 = "The %s value of your start position must be an integer.  Please enter the starting location in the following format: 4.5"
@@ -193,16 +316,24 @@ class Tour(object):
             
         assert 0 < row <= self.board.rows, error2 %("row","first")             
         assert 0 < column <= self.board.columns, error2 %("column","second")       
-        return Position(row, column, self.board)
+        return Position(row, column, self.board, self.verbosity.verbose_int)
 
     def run(self):
         previous_move = self.start_position #or None
-        self.knight = Knight(self.start_position)
+        self.knight = Knight(self.start_position, self.verbosity.verbose_int)
+        count = 0
+        largest_tour = 0
         while len(self.knight.visited_positions) < self.board.size:
+            largest_tour = self.verbosity.min_max(self, largest_tour)
+            self.verbosity.potential_OBOB(self)
+            self.verbosity.progress(count)
+            print "previous move", previous_move                
             possible_moves = self.knight.get_possible_moves(previous_move)
+            self.verbosity.possible_moves(self, possible_moves)
             if len(possible_moves) == 0:
                 previous_move = self._end_of_game(possible_moves)
                 if type(previous_move) == type(self.knight.current_position):
+                    count += 1
                     continue
                 elif self._end_of_game(possible_moves) == "Finished":
                     return self.knight.visited_positions
@@ -217,56 +348,15 @@ class Tour(object):
                     else:
                         previous_move = self.knight.retrace()
                         self._check_tour(previous_move)
+                        count += 1
                         continue
                 else:
                     previous_move = self._choose_best_move(move_combos)
-            
-        """
-find possible knights moves
-if possible moves == 0
-    if end of game
-        return
-    else
-        self knight retrace
-        continue
-else
-    find secondary knight moves
-    if possible moves ==0:
-        if True == self.knight.set_position(position)
-            if end of game:
-                exit or return
-            else
-                ??what do i do here?
-        else
-            self.knight.retrace
-            continue
-move knight to the two positions
-    make sure the knight can go there
-    if the knight can go there, return true and add the knight
-    if he can't go there return false so i can retrace at that moment
-    
-
-
-        """
-    def old_tour(self):        
-        previous_move = self.start_position #or None
-        self.knight = Knight(self.start_position)
-        while len(self.knight.visited_positions) < self.board.size:
-            #return moves that will keep the knight on the board and not backtrack
-            possible_moves = self.knight.get_possible_moves(previous_move)
-            #if no moves are returned, we see if we are done, or we set the knight back a move
-            previous_move = self._check_if_finished(possible_moves)
-            if type(previous_move) is str and "Finished" == previous_move:
-                return self.knight.visited_positions
-            move_combos = self._create_second_moves(possible_moves)    
-            if move_combos == []:
-                previous_move = self.knight.retrace()
-            else:    
-                previous_move = self._choose_best_move(move_combos)
+            count += 1
 
     def _end_of_game(self, possible_moves):
         if len(possible_moves) == 0 and len(self.knight.visited_positions) == self.board.size:
-            return "Finished"
+            return "Finished" 
         else:
             return self.knight.retrace()
         
@@ -277,7 +367,7 @@ move knight to the two positions
         for i in possible_moves:
             #print knight.get_current_position(), i
             move = (i,) #each of these will hold a 2 move combination
-            trial_knight1 = Knight(i)
+            trial_knight1 = Knight(i, self.verbosity.verbose_int)
             trial_knight1.visited_positions = self.knight.visited_positions[:]
             k1_possible_moves = trial_knight1.get_possible_moves(self.knight.get_current_position())
             if len(k1_possible_moves) == 0:
@@ -286,6 +376,7 @@ move knight to the two positions
                     continue
                 elif self._end_of_game(possible_moves) == "Finished":
                     return self.knight.visited_positions
+            self.verbosity.possible_moves(self, k1_possible_moves)    
             for j in k1_possible_moves:
                 #print "\t", j
                 moves = move + (j,)   
@@ -295,9 +386,8 @@ move knight to the two positions
     #untested
     def _choose_best_move(self, move_combos):
         good_moves = self._get_weights(move_combos)
-        #print good_moves
+        self.verbosity.possible_moves(self, good_moves)
         for move in good_moves:
-            print "Moving to", move
             self.knight.set_position(move)
             
         previous_move = good_moves[0]
@@ -325,10 +415,11 @@ move knight to the two positions
     def _check_tour(self, previous_move):
         if previous_move == self.start_position:
             print "no solution found"
-            exit(2)        
+                    
 
     def _get_weights(self, move_combos):
         #two positions will be returned that have a weight less than or equal to other possible position combinations
+        #the tour will use those two positions with the minimum weight to move the knight
         weights = {}
         for i in move_combos:
             #print "getting weights"
@@ -339,7 +430,10 @@ move knight to the two positions
         #print "\t", weights    
         return weights.get(min(weights),None) #maybe i want max here but I doubt it
 
-def main(rows=6, columns=6, starting_location="2.6", verbose=False):
+def main(rows=3, columns=3, starting_location="2.3", verbosity=899):
+    start_time = time.time()
+    if None in [rows, columns, starting_location, verbosity]:
+        print "\tEnter 'e' or 'exit' to skip the prompts and exit the program...\n"
     if rows == None:
         rows = raw_input("how many rows would you like on the chess board?\n")
         if rows.lower() == "e" or rows.lower() == "exit":
@@ -352,26 +446,35 @@ def main(rows=6, columns=6, starting_location="2.6", verbose=False):
         starting_location = raw_input("which coordinate which you like to be the starting location?  (please enter in the format of row.column, eg. 4.5)\n")
         if starting_location.lower() == "e" or starting_location.lower() == "exit":
             return
-    if verbose == None:
-        verbose = raw_input("would you like to display the ordered coordinates for the final tour? (y/n)\n")
-        if verbose.lower() == "y" or verbose.lower() == "yes":
-            verbose = True
+    if verbosity == None:
+        verbosity = raw_input("would you like to display the ordered coordinates for the final tour? (y/n)\n")
+        if verbosity.lower() == "y" or verbosity.lower() == "yes":
+            verbosity = 512
         else:
-            verbose = False
-    t = Tour(rows, columns, starting_location, verbose)
-    result = t.run()
+            verbosity = 0
+    t = Tour(rows, columns, starting_location, verbosity)
+    try:
+        result = t.run()
+        #run multiple instances of the tour, and the one with the smallest difference between
+        #their biggest tour and rebound down to smallest  visited positions.
+        #big rebounds means a lot of possiblilities were ruled out
+    except GameError:
+        print "took", time.time() - start_time
+        return
+    for i in result:
+        print i
+        print "took", time.time() - start_time
     
 #"""
 if __name__ == "__main__":
     print "Welcome to Knights Tour!\n"
-    print "\tType 'e' or 'exit' to skip the prompts...\n"
     main()
 #"""
 
-def test_data(rows=6, columns=6, row=2, column=6, start="4.5"):
-    tour = Tour(rows, columns, start)
-    board = Board(rows, columns)
-    position = Position(row, column, board)
-    knight = Knight(position)
+def test_data(rows=3, columns=3, row=2, column=6, start="4.5"):
+    tour = Tour(rows, columns, start, verbosity=0)
+    board = Board(rows, columns, tour.verbosity)
+    position = Position(row, column, board, tour.verbosity)
+    knight = Knight(position, tour.verbosity)
     return tour, board, position, knight
 
