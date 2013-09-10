@@ -1,5 +1,5 @@
 from app.board import Board, Position
-from app.pieces import Knight
+from app.pieces import ChessPiece, Knight
 from app.verbose import Verbose
 from app.tour import Tour
 

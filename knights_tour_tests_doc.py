@@ -264,67 +264,6 @@ def get_weights_from_tour(rows, columns, position_coordinate, row1, column1, row
     position_tuple = tour._get_weights([(position1, position2),(position3,position4)])
     return position_tuple[0].weight + position_tuple[1].weight
 
-
-"""
-
-class Tour(object):
-
-    def __init__(self, rows, columns, start_position, verbose=True):
-        self.board = Board(rows, columns)
-        self.start_position = self._generate_start_position(start_position)
-        self.retrace = 0 #just in case I want to set up a retrace counter
-        self.verbose = verbose
-        #self.trials = {}#coordinate: [failed_coordinate1, failed_coordinate2]
-
-    def tour(self):
-        previous_move = None
-        knight = Knight(self.start_position)
-        while len(knight.visited_positions) < self.board.size:
-            #return moves that will keep the knight on the board and not backtrack
-            possible_moves = knight.get_possible_moves(previous_move)
-            end = self._check_moves(possible_moves)
-            if end:
-                return knight.visited_positions
-            move_combos = [] #this will hold all 2 move combinations to be selected by the knight by weight
-            for i in possible_moves:
-                moves = () #each of these will hold a 2 move combination
-                position = knight.current_position.get_new_position(i.row, i.column)
-                moves = moves + (position,)
-                trial_knight1 = Knight(position)                
-                k1_possible_moves = trial_knight1.get_possible_moves(position)
-                for j in k1_possible_moves:
-                    position1 = trial_knight1.current_position.get_new_position(j.row, j.column)
-                    trial_knight1.set_position(position1)
-                    moves = moves + (position,)
-                    move_combos.append(moves)
-            good_moves = self._get_weights(move_combos)
-            for move in good_moves:
-                knight.record_visited_position(move)
-            knight.set_position(good_moves[1])    
-                
-
-    def _check_moves(self, possible_moves):
-        if len(possible_moves) == 0:
-            if len(knight.visited_positions) < board.size:
-                previous_move = knight.retrace()
-                self._check_tour(previous_move)
-            else:
-                return True
-
-    def _check_tour(self, previous_move):
-        if previous_move == self.start_position:
-            print "no solution found"
-            exit(2)        
-
-    def _get_weights(self, move_combos):
-        weights = {}
-        for i in move_combos:
-            print i[0], i[1]
-            weight = i[0].weight + i[1].weight
-            weights[weight] = i
-        return weights[min(weights)] #maybe i want max here but I doubt it   
-    
-"""
 if __name__ == '__main__':
     import doctest
     #doctest will only return anything only if there is a failure
