@@ -6,7 +6,7 @@ class GameError(Exception):
 
 class ChessPiece(object):
 
-    knight_moves = None
+    knight_moves = None #remove
         
     def create_moves(self):
         all_moves = tuple()
@@ -24,10 +24,10 @@ class ChessPiece(object):
         return (move1, move2, move3, move4)
         
     def get_current_position(self):
-        return self.current_position
+        return self.visited_positions[-1]
 
     def get_board(self):
-        return self.current_position.board
+        return self.get_current_position().board
         
     def get_failed_moves(self, position):
         if type(position) is tuple:
@@ -35,6 +35,7 @@ class ChessPiece(object):
         return self.trials.get(position.coordinate, set())
 
     def record_visited_position(self, position):
+        #this is a duplicate check as it should have been handled in self._valid_position
         if position not in self.visited_positions:
             self.visited_positions.append(position)
             return True
@@ -43,7 +44,7 @@ class ChessPiece(object):
         self.verbosity.every_move(position)
         added = self.record_visited_position(position)
         #self.record_failed_position(self.current_position, position) #this was commented out, it duplicates in knight.retrace()
-        self.current_position = position
+        #self.current_position = position
         self.verbosity.board(self)
         return added
 
@@ -58,6 +59,7 @@ class ChessPiece(object):
         failed_moves.add(new_position)
         self.trials[old_position.coordinate] = failed_moves
         """
+        
     def retrace(self):  ##create retrace objects so I don't have to manage the memory:)
         """
         A knight can inherit both a chess_piece and a retrace, or should I have them all be conneted via inheritence?
@@ -76,16 +78,15 @@ class ChessPiece(object):
             raise GameError()
         self.set_position(previous_position)
         self.verbosity.retrace(self)
-        print "removing failed position for", previous_position
-        self.remove_failed_positions(previous_position.coordinate)
+        #self.remove_failed_positions(previous_position.coordinate)
         self.record_failed_position(previous_position, failed_position) #this might not be necissary as this should have already been recorded, or I only use this, and get rid of setting failed positions when I move the knight in the first place to be a little less confusing
         #post retrace - print current position, the failed position, all possible moves from the current position and all stored failed moves
 
         return previous_position
 
-    def remove_failed_positions(self, failed_position): #now that failed trials are held in the position, I should be able to get rid of this
+    #REMOVE - now that failed trials are held in the position, I should be able to get rid of this
+    def remove_failed_positions(self, failed_position): 
         failed_positions = self.get_failed_moves(failed_position)
-        print str(failed_positions), "are the failed positions for", str(failed_position)
         if failed_positions == set():
             return
         else:
@@ -100,44 +101,40 @@ class ChessPiece(object):
     def get_possible_moves(self, previous_move):
         possible_moves = [ ] 
         for i in self.moves:
-            possible_position = self.current_position.get_new_position(i[0], i[1])
-            if self._valid_position(possible_position) and not possible_position == previous_move:
+            possible_position = self.get_current_position().get_new_position(i[0], i[1])
+            if self._valid_position(possible_position) and not possible_position == previous_move: #I should be able to remove: and not possible_position == previous move
                 possible_moves.append(possible_position)
         return possible_moves       
         
     def _valid_position(self, position):
-        #print position, "Fits on board:", str(position.fits_on_board)
+         #this is a duplicate check and should be removed once I know the positions I get all fit on the board
         if not position.fits_on_board:
             return False
-        #depending on how many moves in advance I go, I might not need this for loop below, I'll still need the visited positions for loop though
-        failed_positions = self.get_failed_moves(self.get_current_position())
 
-
-        print "current failed positions for in _valid_position method", position 
-        for i in failed_positions:
-            print i
-
-        if self.current_position.check_failed_position(position) == True:
+        if self.get_current_position().check_failed_position(position) == True:
             #if it's already a failed position, return False
             return False
-        
-        for i in failed_positions: #should be able to remove this check with code above
-            if position == i:
-                return False
-
             
         for i in self.visited_positions:
             if position == i:
-                return False        
+                return False
+            
+        #REMOVE - depending on how many moves in advance I go, I might not need this for loop below,
+        #I'll still need the visited positions for loop though
+        failed_positions = self.get_failed_moves(self.get_current_position())        
+        for i in failed_positions: #should be able to remove this check with code above
+            if position == i:
+                return False
+            
         return True 
         
 class Knight(ChessPiece):
 
     legal_moves = ((1,2),(2,1))
 
-    def __init__(self, position, verbosity):
-        self.current_position = position
-        self.visited_positions = [self.current_position]
+    def __init__(self, position, verbosity=0):
+        #self.current_position = position
+        self.visited_positions = [position]
         self.possible_positions = [ ]
         if ChessPiece.knight_moves == None:
             ChessPiece.knight_moves = self.create_moves()

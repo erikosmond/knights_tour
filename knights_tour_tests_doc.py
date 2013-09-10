@@ -23,7 +23,7 @@ def get_weight_from_board(rows, columns, row, column):
     3
     
     """
-    board = Board(rows, columns)
+    board = Board(rows, columns, verbosity=0)
     return board.get_weight(row, column)
 
 def knight_moves(rows, columns, row1, column1, row2, column2):
@@ -212,7 +212,7 @@ def record_visited_position(rows, columns, row1, column1, row2, column2):
 def retrace_pop(rows, columns, row1, column1, row2, column2):
     """
     >>> retrace_pop(rows=8, columns=8, row1=4, column1=5, row2=5, column2=7)
-    (5, 7)
+    (4, 5)
 
     """
     board = Board(rows, columns)

@@ -40,21 +40,25 @@ class Tour(object):
             largest_tour = self.verbosity.min_max(self, largest_tour)
             self.verbosity.potential_OBOB(self)
             self.verbosity.progress(count)
+            
+            ##REMOVE - i should be able to get rid of all this previous move business as all the checking happens elsewhere
             print "previous move", previous_move                
             possible_moves = self.knight.get_possible_moves(previous_move)
+            
             self.verbosity.possible_moves(self.knight.get_current_position(), possible_moves)
             if len(possible_moves) == 0:
                 previous_move = self._end_of_game(possible_moves)
-                if type(previous_move) == type(self.knight.current_position):
+                if type(previous_move) == type(self.knight.get_current_position()):
                     count += 1
                     continue
                 elif self._end_of_game(possible_moves) == "Finished":
                     return self.knight.visited_positions
+            #"""
             else:
                 move_combos = self._create_second_moves(possible_moves)
                 if len(move_combos) == 0:
                     print "move combos len is 0"
-                    if self.knight.set_position(self.knight.current_position) == True:
+                    if self.knight.set_position(self.knight.get_current_position()) == True: #this can't be right
                         if self._end_of_game(move_combos):
                             return self.knight.visited_positions
                         else:
@@ -66,6 +70,8 @@ class Tour(object):
                         continue
                 else:
                     previous_move = self._choose_best_move(move_combos)
+            #"""
+            #previous_move = self._choose_best_move(move_combos)
             count += 1
 
     def _end_of_game(self, possible_moves):
@@ -92,13 +98,14 @@ class Tour(object):
             self.verbosity.possible_moves(i, k1_possible_moves)    
             for j in k1_possible_moves:
                 moves = move + (j,)   
-            move_combos.append(moves)
+                move_combos.append(moves) # I just indented this on 9-10-13 7:20pm
         return move_combos
 
     #untested
     def _choose_best_move(self, move_combos):
         good_moves = self._get_weights(move_combos)
         self.verbosity.possible_moves(self.knight.get_current_position(), good_moves)
+        print "good moves", good_moves[0], good_moves[1]
         for move in good_moves:
             self.knight.set_position(move)
             

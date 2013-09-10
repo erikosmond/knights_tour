@@ -5,10 +5,15 @@ from app.tour import Tour
 
 import time
 import logging
-import multiprocessing 
+import multiprocessing
+
+class GameError(Exception):
+    def __init__(self):
+        print "tour didn't work"
+        
 #I should consider logging so I can view STDOUT and have it write to disk 
 
-def main(rows=4, columns=4, starting_location="2.3", verbosity=137): #was 907 then 1023 
+def main(rows=4, columns=4, starting_location="2.3", verbosity=393): #was 907 then 1023 137+256
     start_time = time.time()
     if None in [rows, columns, starting_location, verbosity]:
         print "\tEnter 'e' or 'exit' to skip the prompts and exit the program...\n"

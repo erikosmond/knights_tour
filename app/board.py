@@ -2,7 +2,7 @@ from app.verbose import Verbose
 
 class Board(object):
 
-    def __init__(self, rows, columns, verbosity):
+    def __init__(self, rows, columns, verbosity=0):
         self.rows = int(rows)
         self.columns = int(columns)
         self.size = self.rows * self.columns
@@ -22,7 +22,7 @@ class Board(object):
 
 class Position(object):
 
-    def __init__(self, row, column, board, verbosity):
+    def __init__(self, row, column, board, verbosity=0):
         self.row = row
         self.column = column
         self.coordinate = (row, column)
