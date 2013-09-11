@@ -51,6 +51,7 @@ class Verbose(object):
         return largest_tour
     
     def failed_position(self, old_position, failed_moves):
+        return #remove this, but change the switch 
         if self.failed_position_switch:
             print "\told position", old_position
             for i in failed_moves:
@@ -89,6 +90,7 @@ class Verbose(object):
 
     def board(self, chess_piece):
         if self.board_switch:
+            print "\n\n"
             board = chess_piece.get_board()
             for row in range(1, board.rows+1):
                 for column in range(1, board.columns+1):
@@ -115,7 +117,8 @@ class Verbose(object):
                     if knight_present == False and fail_present == False:
                         print "x\t",
                 print "\n"
-            raw_input("press any key to continue")
+            print "\n\n"    
+            #raw_input("press any key to continue")
 
     def possible_moves(self, origin, moves):
         if self.possible_moves_switch:

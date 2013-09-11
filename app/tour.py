@@ -40,9 +40,10 @@ class Tour(object):
             largest_tour = self.verbosity.min_max(self, largest_tour)
             self.verbosity.potential_OBOB(self)
             self.verbosity.progress(count)
+            if len(self.knight.visited_positions) < 4:
+                largest_tour = len(self.knight.visited_positions)
             
-            ##REMOVE - i should be able to get rid of all this previous move business as all the checking happens elsewhere
-            print "previous move", previous_move                
+            ##REMOVE - i should be able to get rid of all this previous move business as all the checking happens elsewhere - I still need to call some form of this method though
             possible_moves = self.knight.get_possible_moves(previous_move)
             
             self.verbosity.possible_moves(self.knight.get_current_position(), possible_moves)
@@ -53,9 +54,18 @@ class Tour(object):
                     continue
                 elif self._end_of_game(possible_moves) == "Finished":
                     return self.knight.visited_positions
-            #"""
+            
             else:
-                move_combos = self._create_second_moves(possible_moves)
+                move_options = {}
+                for i in possible_moves:
+                    num_moves = len(self._create_second_moves(i))
+                    #if num_moves == 0: #maybe remove this, but it should be a minor optimization
+                        #continue
+                    move_options[num_moves] = i
+                best_position = min(move_options)
+                self.knight.set_position(move_options[best_position])    
+            """    
+                move_combos = self._create_second_moves(i)
                 if len(move_combos) == 0:
                     print "move combos len is 0"
                     if self.knight.set_position(self.knight.get_current_position()) == True: #this can't be right
@@ -82,30 +92,30 @@ class Tour(object):
         
 
     #untested
-    def _create_second_moves(self, possible_moves):
+    def _create_second_moves(self, i):
         move_combos = [] #this will hold all 2 move combinations to be selected by the knight by weight
-        for i in possible_moves:
-            move = (i,) #each of these will hold a 2 move combination
-            trial_knight1 = Knight(i, self.verbosity.verbose_int)
-            trial_knight1.visited_positions = self.knight.visited_positions[:]
-            k1_possible_moves = trial_knight1.get_possible_moves(self.knight.get_current_position())
-            if len(k1_possible_moves) == 0:
-                previous_move = self._end_of_game(possible_moves)
-                if type(previous_move) == type(self.knight.current_position):
-                    continue
-                elif self._end_of_game(possible_moves) == "Finished":
-                    return self.knight.visited_positions
-            self.verbosity.possible_moves(i, k1_possible_moves)    
-            for j in k1_possible_moves:
-                moves = move + (j,)   
-                move_combos.append(moves) # I just indented this on 9-10-13 7:20pm
+        move = (i,) #each of these will hold a 2 move combination
+        trial_knight1 = Knight(i, self.verbosity.verbose_int)
+        trial_knight1.visited_positions = self.knight.visited_positions[:]
+        k1_possible_moves = trial_knight1.get_possible_moves(self.knight.get_current_position())
+        """
+        if len(k1_possible_moves) == 0:
+            previous_move = self._end_of_game(possible_moves)
+            if type(previous_move) == type(self.knight.current_position):
+                return move_combos
+            elif self._end_of_game(possible_moves) == "Finished":
+                return self.knight.visited_positions
+        #"""
+        self.verbosity.possible_moves(i, k1_possible_moves)    
+        for j in k1_possible_moves:
+            moves = move + (j,)   
+            move_combos.append(moves) # I just indented this on 9-10-13 7:20pm
         return move_combos
 
     #untested
     def _choose_best_move(self, move_combos):
         good_moves = self._get_weights(move_combos)
         self.verbosity.possible_moves(self.knight.get_current_position(), good_moves)
-        print "good moves", good_moves[0], good_moves[1]
         for move in good_moves:
             self.knight.set_position(move)
             

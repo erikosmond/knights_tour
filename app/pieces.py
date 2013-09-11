@@ -45,7 +45,8 @@ class ChessPiece(object):
         added = self.record_visited_position(position)
         #self.record_failed_position(self.current_position, position) #this was commented out, it duplicates in knight.retrace()
         #self.current_position = position
-        self.verbosity.board(self)
+        if len(self.visited_positions) == self.get_board().size - 1:
+            self.verbosity.board(self)
         return added
 
 
