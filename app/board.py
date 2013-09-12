@@ -56,6 +56,10 @@ class Position(object):
 
     def record_failed_position(self, position):
         self.failures.append(position)
+        
+    def get_weight(self):
+        return self.weight
+    
 
     def check_failed_position(self, position):
         if position in self.failures:

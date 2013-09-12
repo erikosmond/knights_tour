@@ -1,6 +1,14 @@
 from app.board import Board, Position
 from app.pieces import Knight
 from app.verbose import Verbose
+from app.move import Move
+
+class MoveError(Exception):
+    
+    def __init__(self, position):
+        print "Knight can not move to", position, " as it has already been visited."
+    
+
 
 class Tour(object):
 
@@ -37,24 +45,31 @@ class Tour(object):
         count = 0
         largest_tour = 0
         while len(self.knight.visited_positions) < self.board.size:
+            #garner stats
             largest_tour = self.verbosity.min_max(self, largest_tour)
             self.verbosity.potential_OBOB(self)
             self.verbosity.progress(count)
             if len(self.knight.visited_positions) < 4:
                 largest_tour = len(self.knight.visited_positions)
             
+            #find the next move
             ##REMOVE - i should be able to get rid of all this previous move business as all the checking happens elsewhere - I still need to call some form of this method though
-            possible_moves = self.knight.get_possible_moves(previous_move)
-            
-            self.verbosity.possible_moves(self.knight.get_current_position(), possible_moves)
-            if len(possible_moves) == 0:
-                previous_move = self._end_of_game(possible_moves)
-                if type(previous_move) == type(self.knight.get_current_position()):
+            possible_positions = self.knight.get_possible_moves()
+            self.verbosity.possible_moves(self.knight.get_current_position(), possible_positions)
+            if len(possible_positions) == 0:
                     count += 1
+                    self.knight.retrace()
                     continue
-                elif self._end_of_game(possible_moves) == "Finished":
-                    return self.knight.visited_positions
+                
+            initial_moves = []
+            for position in possible_positions: #the position already has a weight when it's created
+                move = Move(position, self.knight.get_visited_positions()[:])
+                initial_moves.append(move)
+            best_move = Move.choose_best_move(initial_moves)
+            if not self.knight.set_position(best_move.get_position()):
+                raise MoveError(best_move.get_position())
             
+            """    
             else:
                 move_options = {}
                 for i in possible_moves:
@@ -63,8 +78,8 @@ class Tour(object):
                         #continue
                     move_options[num_moves] = i
                 best_position = min(move_options)
-                self.knight.set_position(move_options[best_position])    
-            """    
+                self.knight.set_position(move_options[best_position])
+                
                 move_combos = self._create_second_moves(i)
                 if len(move_combos) == 0:
                     print "move combos len is 0"
@@ -83,6 +98,7 @@ class Tour(object):
             #"""
             #previous_move = self._choose_best_move(move_combos)
             count += 1
+        return self.knight.get_visited_positions()
 
     def _end_of_game(self, possible_moves):
         if len(possible_moves) == 0 and len(self.knight.visited_positions) == self.board.size:

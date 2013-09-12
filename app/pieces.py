@@ -6,7 +6,7 @@ class GameError(Exception):
 
 class ChessPiece(object):
 
-    knight_moves = None #remove
+    knight_moves = None #This ensures I only calculate legal knight moves once
         
     def create_moves(self):
         all_moves = tuple()
@@ -40,11 +40,12 @@ class ChessPiece(object):
             self.visited_positions.append(position)
             return True
 
+    def get_visited_positions(self):
+        return self.visited_positions
+    
     def set_position(self, position):
         self.verbosity.every_move(position)
         added = self.record_visited_position(position)
-        #self.record_failed_position(self.current_position, position) #this was commented out, it duplicates in knight.retrace()
-        #self.current_position = position
         if len(self.visited_positions) == self.get_board().size - 1:
             self.verbosity.board(self)
         return added
@@ -99,11 +100,12 @@ class ChessPiece(object):
         self.possible_positions = [ ]
 
     #passing previous one into this method should eliminate need for self.possible_positions    
-    def get_possible_moves(self, previous_move):
+    def get_possible_moves(self): #had previous move in here but I don't think it did anything
         possible_moves = [ ] 
         for i in self.moves:
             possible_position = self.get_current_position().get_new_position(i[0], i[1])
-            if self._valid_position(possible_position) and not possible_position == previous_move: #I should be able to remove: and not possible_position == previous move
+            if self._valid_position(possible_position):# and not possible_position == previous_move: #I should be able to remove: and not possible_position == previous move
+                #print "possible position from pieces.py lin 110, looking for None", possible_position #didn't see a None
                 possible_moves.append(possible_position)
         return possible_moves       
         

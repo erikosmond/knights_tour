@@ -117,7 +117,7 @@ class Verbose(object):
                     if knight_present == False and fail_present == False:
                         print "x\t",
                 print "\n"
-            print "\n\n"    
+            print "\n\n"
             #raw_input("press any key to continue")
 
     def possible_moves(self, origin, moves):
