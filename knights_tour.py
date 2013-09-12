@@ -13,8 +13,8 @@ class GameError(Exception):
         
 #I should consider logging so I can view STDOUT and have it write to disk 
 
-def main(rows=5, columns=5, starting_location="2.3", verbosity=193): #was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
-    start_time = time.time()
+#def main(rows=8, columns=8, starting_location="1.1", verbosity=0): #was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
+def main(rows=None, columns=None, starting_location=None, verbosity=None):
     if None in [rows, columns, starting_location, verbosity]:
         print "\tEnter 'e' or 'exit' to skip the prompts and exit the program...\n"
     if rows == None:
@@ -31,22 +31,35 @@ def main(rows=5, columns=5, starting_location="2.3", verbosity=193): #was 907 th
             return
     if verbosity == None:
         verbosity = raw_input("would you like to display the ordered coordinates for the final tour? (y/n)\n")
+        try:
+            verbosity = int(verbosity)
+        except Exception:
+            pass
         if verbosity.lower() == "y" or verbosity.lower() == "yes":
             verbosity = 512
+        elif type(verbosity) is int:
+            verbosity = verbosity
         else:
             verbosity = 0
+    print "\tCurrently searching for solutions...\n"
+    start_time = time.time()
     t = Tour(rows, columns, starting_location, verbosity)
     try:
-        result = t.run()
+        #results = t.run
+        knight = t.run()
         #run multiple instances of the tour, and the one with the smallest difference between
         #their biggest tour and rebound down to smallest  visited positions.
         #big rebounds means a lot of possiblilities were ruled out
     except GameError:
         print "took", time.time() - start_time
         return
-    for i in result:
-        print i
-        print "took", time.time() - start_time
+    print "\tFound result!"
+    if verbosity >= 512:
+        v = Verbose(8)
+        v.board(knight)
+    #for i in knight.get_visited_positions():
+        #print i
+    print "took", time.time() - start_time
     
 #"""
 if __name__ == "__main__":

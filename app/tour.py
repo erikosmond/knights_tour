@@ -98,7 +98,8 @@ class Tour(object):
             #"""
             #previous_move = self._choose_best_move(move_combos)
             count += 1
-        return self.knight.get_visited_positions()
+        return self.knight
+        #return self.knight.get_visited_positions()
 
     def _end_of_game(self, possible_moves):
         if len(possible_moves) == 0 and len(self.knight.visited_positions) == self.board.size:
