@@ -59,11 +59,7 @@ class Verbose(object):
 
     def final_positions(self, chess_piece):
         if self.final_positions_switch:
-            print "no solution, but here's what was tried"            
-            for i in chess_piece.trials:
-                print "\t", i
-                for j in chess_piece.get_failed_moves(i):
-                    print "\t\t", j
+            self.board(chess_piece, final=True)
 
     def retrace(self, chess_piece):
         if self.retrace_switch:
@@ -88,8 +84,8 @@ class Verbose(object):
         if self.every_move_switch:
             print "moving to", move
 
-    def board(self, chess_piece):
-        if self.board_switch:
+    def board(self, chess_piece, final=False):
+        if self.board_switch or final==True:
             print "\n\n"
             board = chess_piece.get_board()
             for row in range(1, board.rows+1):

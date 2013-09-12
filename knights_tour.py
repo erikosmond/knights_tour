@@ -55,9 +55,9 @@ def main(rows=8, columns=8, starting_location="1.1", verbosity=512): #was 907 th
         return
     print "\tFound result!"
     print "\tThe simulation lasted", str(count), "moves."
-    if verbosity >= 512:
-        v = Verbose(8)
-        v.board(knight)
+    if verbosity == 512:
+        v = Verbose(verbosity)
+        v.final_positions(knight)
     #for i in knight.get_visited_positions():
         #print i
     print "took", time.time() - start_time
