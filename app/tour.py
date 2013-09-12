@@ -98,7 +98,7 @@ class Tour(object):
             #"""
             #previous_move = self._choose_best_move(move_combos)
             count += 1
-        return self.knight
+        return self.knight, count
         #return self.knight.get_visited_positions()
 
     def _end_of_game(self, possible_moves):
