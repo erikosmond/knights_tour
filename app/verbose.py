@@ -70,7 +70,7 @@ class Verbose(object):
 
     def potential_OBOB(self, tour):
         if self.potential_OBOB_switch:
-            if len(tour.knight.visited_positions) in [58,59]:
+            if len(tour.knight.visited_positions) == tour.board.size -1:
                 print "possible OBOB with len", len(tour.knight.visited_positions) 
                 for pos in tour.knight.visited_positions:
                     print pos

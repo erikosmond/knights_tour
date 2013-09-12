@@ -13,7 +13,7 @@ class GameError(Exception):
         
 #I should consider logging so I can view STDOUT and have it write to disk 
 
-def main(rows=8, columns=8, starting_location="1.1", verbosity=512): #was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
+def main(rows=8, columns=7, starting_location="1.1", verbosity=512): #was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
 #def main(rows=None, columns=None, starting_location=None, verbosity=None):
     if None in [rows, columns, starting_location, verbosity]:
         print "\tEnter 'e' or 'exit' to skip the prompts and exit the program...\n"
@@ -55,9 +55,9 @@ def main(rows=8, columns=8, starting_location="1.1", verbosity=512): #was 907 th
         return
     print "\tFound result!"
     print "\tThe simulation lasted", str(count), "moves."
-    if verbosity == 512:
-        v = Verbose(verbosity)
-        v.final_positions(knight)
+    if verbosity >= 512:
+        v = Verbose(8)
+        v.board(knight)
     #for i in knight.get_visited_positions():
         #print i
     print "took", time.time() - start_time

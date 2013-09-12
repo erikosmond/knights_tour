@@ -75,6 +75,9 @@ class ChessPiece(object):
         return possible_moves       
         
     def _valid_position(self, position):
+        if position.fits_on_board != True:
+            return False
+        
         if self.get_current_position().check_failed_position(position) == True:
             #if it's already a failed position, return False
             return False
