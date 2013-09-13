@@ -17,9 +17,6 @@ class Move(object):
         for move in possibilities[fewest_moves]:
             move_weight = move.get_position().get_weight()
             if end_positions != None:
-                print "end positions", end_positions
-                print "move", move
-                print "move_weight", move_weight
                 move_weight = move._check_closed_tour(move_weight, end_positions)
             if move_weight != None and move_weight < lowest_weight:
                 lowest_weight = move_weight
