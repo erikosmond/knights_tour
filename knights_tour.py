@@ -14,7 +14,7 @@ class GameError(Exception):
         
 #I should consider logging so I can view STDOUT and have it write to disk 
 
-def main(rows=8, columns=8, starting_location="1.1", save=True, verbosity=512, closed=False): #was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
+def main(rows=8, columns=8, starting_location="1.1", save=True, verbosity=512, closed=True): #was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
 #def main(rows=None, columns=None, starting_location=None, save=None, closed=None, verbosity=None):
     if None in [rows, columns, starting_location, verbosity]:
         print "\tEnter 'e' or 'exit' to skip the prompts and exit the program...\n"

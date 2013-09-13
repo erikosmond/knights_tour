@@ -35,7 +35,6 @@ class ChessPiece(object):
             self.visited_positions.append(position)
             return True
         elif retrace == True:
-            print "setting retrace to True for", position
             self.get_current_position().set_retrace()
 
     def get_visited_positions(self):
@@ -58,8 +57,6 @@ class ChessPiece(object):
         
     def retrace(self):
         failed_position = self.visited_positions.pop()
-        if failed_position.retrace == True:
-            print "retracing position that had retrace", failed_position
         try:
             previous_position = self.visited_positions[-1]
         except:
