@@ -4,6 +4,7 @@ from app.verbose import Verbose
 from app.tour import Tour
 
 import time
+import json
 import logging
 import multiprocessing
 
@@ -13,12 +14,12 @@ class GameError(Exception):
         
 #I should consider logging so I can view STDOUT and have it write to disk 
 
-def main(rows=8, columns=7, starting_location="1.1", verbosity=512): #was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
-#def main(rows=None, columns=None, starting_location=None, verbosity=None):
+def main(rows=8, columns=8, starting_location="1.1", save=True, verbosity=512, closed=False): #was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
+#def main(rows=None, columns=None, starting_location=None, save=None, closed=None, verbosity=None):
     if None in [rows, columns, starting_location, verbosity]:
         print "\tEnter 'e' or 'exit' to skip the prompts and exit the program...\n"
     if rows == None:
-        rows = raw_input("how many rows would you like on the chess board?\n")
+        rows = raw_input("How many rows would you like on the chess board?\n")
         if rows.lower() == "e" or rows.lower() == "exit":
             return
     if columns == None:
@@ -26,8 +27,20 @@ def main(rows=8, columns=7, starting_location="1.1", verbosity=512): #was 907 th
         if columns.lower() == "e" or columns.lower() == "exit":
             return
     if starting_location == None:
-        starting_location = raw_input("which coordinate which you like to be the starting location?  (please enter in the format of row.column, eg. 4.5)\n")
+        starting_location = raw_input("Which coordinate which you like to be the starting location?  (please enter in the format of row.column, eg. 4.5)\n")
         if starting_location.lower() == "e" or starting_location.lower() == "exit":
+            return
+    if save == None:
+        save_input = raw_input("Would you like to save your tour to a file? (y/n)\n")
+        if save_input.lower() == "y" or save_input.lower() == "yes":
+            save = True
+        elif save_input.lower() == "e" or save_input.lower() == "exit":
+            return
+    if closed == None:
+        closed_input = raw_input("Would you like the tour to form a loop from start to end (a closed tour)? (y/n)\n")
+        if closed_input.lower() == "y" or closed_input.lower() == "yes":
+            save = True
+        elif closed_input.lower() == "e" or closed_input.lower() == "exit":
             return
     if verbosity == None:
         verbosity = raw_input("would you like to display the ordered coordinates for the final tour? (y/n)\n")
@@ -43,7 +56,8 @@ def main(rows=8, columns=7, starting_location="1.1", verbosity=512): #was 907 th
             verbosity = 0
     print "\tCurrently searching for solutions...\n"
     start_time = time.time()
-    t = Tour(rows, columns, starting_location, verbosity)
+    
+    t = Tour(rows, columns, starting_location, verbosity, closed)
     try:
         #results = t.run
         knight, count = t.run()
@@ -58,10 +72,16 @@ def main(rows=8, columns=7, starting_location="1.1", verbosity=512): #was 907 th
     if verbosity >= 512:
         v = Verbose(8)
         v.board(knight)
-    #for i in knight.get_visited_positions():
-        #print i
+    
     print "took", time.time() - start_time
-    return knight.get_visited_positions()
+    if save == True:
+        final_tour = knight.get_tour()
+        json_tour = json.dumps(final_tour)
+        timestamp = str(int(time.time()))
+        fp = open("./tour-" + timestamp + ".json", "w+")
+        json.dump(json_tour, fp)
+        fp.close()
+    
     
 #"""
 if __name__ == "__main__":

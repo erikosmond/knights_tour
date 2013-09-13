@@ -29,11 +29,14 @@ class ChessPiece(object):
     def get_board(self):
         return self.get_current_position().board
 
-    def record_visited_position(self, position):
+    def record_visited_position(self, position, retrace=False):
         #this is a duplicate check as it should have been handled in self._valid_position
         if position not in self.visited_positions:
             self.visited_positions.append(position)
             return True
+        elif retrace == True:
+            print "setting retrace to True for", position
+            self.get_current_position().set_retrace()
 
     def get_visited_positions(self):
         return self.visited_positions
@@ -42,7 +45,7 @@ class ChessPiece(object):
         if retrace == True:
             position.set_retrace()
         self.verbosity.every_move(position)
-        added = self.record_visited_position(position)
+        added = self.record_visited_position(position, retrace)
         if len(self.visited_positions) == self.get_board().size - 1:
             self.verbosity.board(self)
         return added
@@ -55,6 +58,8 @@ class ChessPiece(object):
         
     def retrace(self):
         failed_position = self.visited_positions.pop()
+        if failed_position.retrace == True:
+            print "retracing position that had retrace", failed_position
         try:
             previous_position = self.visited_positions[-1]
         except:
@@ -99,3 +104,15 @@ class Knight(ChessPiece):
             ChessPiece.knight_moves = self.create_moves()
         self.moves = ChessPiece.knight_moves
         self.verbosity = Verbose(verbosity)
+        
+    def get_tour(self):
+        final_tour = []
+        for position in self.get_visited_positions():
+            info = str(position.row) + '.' + str(position.column) 
+            if position.retrace == True:
+                info = info + '.' + "retrace"
+            else:
+                info = info + '.' + "progress" 
+            final_tour.append(info)
+        return final_tour
+    

@@ -12,8 +12,9 @@ class MoveError(Exception):
 
 class Tour(object):
 
-    def __init__(self, rows, columns, start_position, verbosity=0):
+    def __init__(self, rows, columns, start_position, verbosity=0, closed=False):
         self.verbosity = Verbose(verbosity)
+        self.closed = closed
         self.board = Board(rows, columns, self.verbosity.verbose_int)
         self.start_position = self._generate_start_position(start_position)
         self.retrace = 0 #just in case I want to set up a retrace counter
