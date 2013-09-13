@@ -18,6 +18,7 @@ class Tour(object):
         self.board = Board(rows, columns, self.verbosity.verbose_int)
         self.start_position = self._generate_start_position(start_position)
         self.retrace = 0 #just in case I want to set up a retrace counter
+        self.end_positions = None
         
     def run(self):
         self.knight = Knight(self.start_position, self.verbosity.verbose_int)
@@ -47,7 +48,7 @@ class Tour(object):
                 move = Move(position, self.knight.get_visited_positions()[:])
                 initial_moves.append(move)
             if len(initial_moves) != 0:
-                best_move = Move.choose_best_move(initial_moves)
+                best_move = Move.choose_best_move(initial_moves, self.end_positions)
                 if not self.knight.set_position(best_move.get_position()):
                     raise MoveError(best_move.get_position())
             count += 1

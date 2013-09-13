@@ -4,7 +4,7 @@ from pieces import Knight
 class Move(object):
     
     @classmethod
-    def choose_best_move(self, moves):
+    def choose_best_move(self, moves, end_positions):
         possibilities = {}
         for move in moves:
             moves_by_num = possibilities.get(move.get_num_possible_moves(), tuple())
@@ -12,10 +12,15 @@ class Move(object):
             possibilities[move.get_num_possible_moves()] = moves_by_num
             #get the move with the least possible position, if there's more than one, go by weight
         fewest_moves = min(possibilities)
-        lowest_weight = 9
+        lowest_weight = 20
         best_move = None
         for move in possibilities[fewest_moves]:
             move_weight = move.get_position().get_weight()
+            if end_positions != None:
+                print "end positions", end_positions
+                print "move", move
+                print "move_weight", move_weight
+                move_weight = move._check_closed_tour(move_weight, end_positions)
             if move_weight != None and move_weight < lowest_weight:
                 lowest_weight = move_weight
                 best_move = move
@@ -26,6 +31,11 @@ class Move(object):
         self.knight.visited_positions = visited_positions
         self.position = position
         self.possible_moves = self.knight.get_possible_moves() #should be able to remove previous position/ None
+
+    def _check_closed_tour(self, move_weight, end_positions):
+        if self.get_position() in end_positions:
+            move_weight += 10
+        return move_weight
 
     def get_position(self):
         return self.position
