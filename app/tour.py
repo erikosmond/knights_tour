@@ -38,12 +38,13 @@ class Tour(object):
             possible_positions = self.knight.get_possible_moves()
             self.verbosity.possible_moves(self.knight.get_current_position(), possible_positions)
             if len(possible_positions) == 0:
+                    previous_position = self.knight.retrace()
+                    t = Trace(count, previous_position, retrace=True)
                     count += 1
-                    self.knight.retrace()
                     continue  
             initial_moves = []
             for position in possible_positions: #the position already has a weight when it's created
-                if self._check_closed_tour(position) == True:
+                if self._check_closed_tour(position, count) == True:
                     break
                 move = Move(position, self.knight.get_visited_positions()[:])
                 initial_moves.append(move)
@@ -51,15 +52,18 @@ class Tour(object):
                 best_move = Move.choose_best_move(initial_moves, self.end_positions)
                 if not self.knight.set_position(best_move.get_position()):
                     raise MoveError(best_move.get_position())
+                t = Trace(count, best_move.get_position(), retrace=False)
             count += 1
         return self.knight, count
     
-    def _check_closed_tour(self, position):
+    def _check_closed_tour(self, position, count):
         if len(self.knight.visited_positions) == (self.board.size -1) and self.closed == True:
             if position in self.end_positions:
+                t = Trace(count, position, retrace=False)
                 self.knight.set_position(position)
             else:
-                self.knight.retrace()
+                previous_position = self.knight.retrace()
+                t = Trace(count, previous_position, retrace=True)
             return True
     
     def _generate_start_position(self, start_position):
