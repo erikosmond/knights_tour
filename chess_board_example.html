@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+	<title>Chess Board</title>
+<!--Adobe Edge Runtime-->
+    <!--script type="text/javascript" charset="utf-8" src="chess_board_edgePreload.js"></script>
+   -->
+    <script>
+	var i = 0;
+	cells = ["1.1", "1.2", "1.3", "1.4","2.1", "2.2", "2.3", "2.4","3.1", "3.2", "3.3", "3.4","4.1", "4.2", "4.3", "4.4"];	
+	function setValues() {
+	    setTimeout(function () {
+		document.getElementById(cells[i]).innerHTML = '<div class="pos">' + i + '</div>';
+		i++;
+		if (i < cells.length) {
+		    setValues();
+		}
+	    }, 300)
+	}
+	
+        </script>
+    <!--
+    	.EvenSquare {
+	margin: 10px;
+	padding: 0;
+	background: #55c1eb;
+	padding-bottom: 0px;
+	font-size: 68.8%; 
+	table-layout:fixed;
+	width:150px;
+	overflow:hidden;
+	word-wrap: break-word;
+	}
+	-->
+    <style>
+	.EvenSquare {
+	padding: 0;
+	background: #55c1eb;
+	color: #55c1eb;
+	padding-bottom: 0px;
+	table-layout:fixed;
+	width:100px;
+	overflow:hidden;
+	font-size: large;
+	text-align: center;
+	word-wrap: break-word;
+	}
+	.OddSquare {
+	padding: 0;
+	background: #d10606;
+	color: #d10606;
+	padding-bottom: 0px;
+	table-layout:fixed;
+	width:100px;
+	overflow:hidden;
+	font-size: large;
+	text-align: center;
+	word-wrap: break-word;
+	}
+	.pos {
+	color: #e7e7e7;
+	font-size: "32";
+	text-align: center;
+	}
+	table td {
+	    table-layout:fixed;
+	    font-size: "32";
+	    min-width: 100px;
+	    width:100px;
+	    max-width: 100px;
+	    min-height: 100px;
+	    height: 100px;
+	    max-height: 100px;
+	    overflow:hidden;
+	    word-wrap: break-word;
+	}
+	table tr {
+	    table-layout:fixed;
+	    font-size: "32";
+	    min-width: 100px;
+	    width:100px;
+	    max-width: 100px;
+	    min-height: 100px;
+	    height: 100px;
+	    max-height: 100px;
+	    overflow:hidden;
+	    word-wrap: break-word;
+	}
+    </style>
+<!--Adobe Edge Runtime End-->
+
+</head>
+<body style="margin:0;padding:0;" onload="setValues();">
+	<div id="Stage" class="EDGE-1038903009">
+	    <table border=1 width="400" height="400" table-layout="fixed">
+		<tr>
+		    <td class="EvenSquare" id="1.1">
+			
+		    </td>
+		    <td class="OddSquare" id="1.2">
+			
+		    </td>
+		    <td class="EvenSquare" id="1.3">
+			
+		    </td>
+		    <td class="OddSquare" id="1.4">
+			
+		    </td>
+		</tr>
+		<tr>
+		    <td class="OddSquare" id="2.1">
+			
+		    </td>
+		    <td class="EvenSquare" id="2.2">
+				
+		    </td>
+		    <td class="OddSquare" id="2.3">
+			
+		    </td>
+		    <td class="EvenSquare" id="2.4">
+				
+		    </td>
+		</tr>
+		<tr>
+		    <td class="EvenSquare" id="3.1">
+			
+		    </td>
+		    <td class="OddSquare" id="3.2">
+			
+		    </td>
+		    <td class="EvenSquare" id="3.3">
+			
+		    </td>
+		    <td class="OddSquare" id="3.4">
+			
+		    </td>
+		</tr>
+		<tr>
+		    <td class="OddSquare" id="4.1">
+			
+		    </td>
+		    <td class="EvenSquare" id="4.2">
+				
+		    </td>
+		    <td class="OddSquare" id="4.3">
+			
+		    </td>
+		    <td class="EvenSquare" id="4.4">
+				
+		    </td>
+		</tr>
+	    </table>
+	</div>
+</body>
+</html>
