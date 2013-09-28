@@ -14,8 +14,8 @@ class GameError(Exception):
         
 #I should consider logging so I can view STDOUT and have it write to disk 
 
-#def main(rows=8, columns=8, starting_location="1.1", save=False, verbosity=512, closed=True): #was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
-def main(rows=None, columns=None, starting_location=None, save=None, closed=None, verbosity=None):
+def main(rows=8, columns=8, starting_location="1.1", save=False, verbosity=576, closed=True): #512 is just completed tour, 577 is good, was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
+#def main(rows=None, columns=None, starting_location=None, save=None, closed=None, verbosity=None):
     if None in [rows, columns, starting_location, verbosity]:
         print "\tEnter 'e' or 'exit' to skip the prompts and exit the program...\n"
     if rows == None:
@@ -54,7 +54,7 @@ def main(rows=None, columns=None, starting_location=None, save=None, closed=None
             verbosity = verbosity
         else:
             verbosity = 0
-    print "\tCurrently searching for solutions...\n"
+    print "\tSearching for solutions...\n"
     start_time = time.time()
     
     t = Tour(rows, columns, starting_location, verbosity, closed)
@@ -68,12 +68,11 @@ def main(rows=None, columns=None, starting_location=None, save=None, closed=None
         print "took", time.time() - start_time
         return
     print "\tFound result!"
-    print "\tThe simulation lasted", str(count), "moves."
+    print "\tThe simulation lasted", str(count), "moves and took", str(round(time.time() - start_time, 4)), "seconds"
     if verbosity >= 512:
-        v = Verbose(8)
-        v.board(knight)
+        v = Verbose(512)
+        v.board(knight, final=True)
     
-    print "took", time.time() - start_time
     if save == True:
         final_tour = knight.get_tour()
         json_tour = json.dumps(final_tour)

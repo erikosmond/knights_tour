@@ -1,4 +1,9 @@
 class Trace(object):
+    '''
+    Incomplete class which will eventually allow the user
+    to see certain portions of the algorithm
+    '''
+    
     
     max_buffer_size = 500
     buffer1 = []

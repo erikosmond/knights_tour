@@ -12,7 +12,7 @@ class Verbose(object):
         bit 3[-4](8)    - board when it changes
         bit 4[-5](16)   - every move
         bit 5[-6](32)   - recording failed position
-        bit 6[-7](64)   - progress (how many moves have been made)
+        bit 6[-7](64)   - progress  - list of final positions (how many moves have been made)
         bit 7[-8](128)  - potential OBOB
         bit 8[-9](256)  - possible moves
         bit 9[-10](512) - final positions
@@ -77,7 +77,7 @@ class Verbose(object):
 
     def progress(self, count):
         if self.progress_switch:                            
-            if count % 100000 == 0:
+            if count % 10000 == 0:
                 print str(count), "moves tried so far"
 
     def every_move(self, move):

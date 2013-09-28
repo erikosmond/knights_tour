@@ -27,6 +27,7 @@ class Tour(object):
             self.end_positions = self.knight.get_possible_moves()
         count = 0
         largest_tour = 0
+        complete = False
         while len(self.knight.visited_positions) < self.board.size:
             #garner stats
             largest_tour = self.verbosity.min_max(self, largest_tour)
@@ -46,10 +47,12 @@ class Tour(object):
             initial_moves = []
             for position in possible_positions: #the position already has a weight when it's created
                 if self._check_closed_tour(position, count) == True:
+                    #either the tour is complete, or the knight retraced and we return to the while loop
+                    complete = True
                     break
                 move = Move(position, self.knight.get_visited_positions()[:])
                 initial_moves.append(move)
-            if len(initial_moves) != 0:
+            if len(initial_moves) != 0 and complete != True:
                 best_move = Move.choose_best_move(initial_moves, self.end_positions)
                 if not self.knight.set_position(best_move.get_position()):
                     raise MoveError(best_move.get_position())
@@ -61,15 +64,16 @@ class Tour(object):
         if len(self.knight.visited_positions) == (self.board.size -1) and self.closed == True:
             if position in self.end_positions:
                 t = Trace(count, position, retrace=False)
-                self.knight.set_position(position)
+                self.knight.set_position(position)                
+                #final position of the closed tour has been reached
             else:
                 previous_position = self.knight.retrace()
                 t = Trace(count, previous_position, retrace=True)
-            return True
+            return True 
     
     def _generate_start_position(self, start_position):
         error1 = "The %s value of your start position must be an integer.  Please enter the starting location in the following format: 4.5"
-        error2 = "the %s (the %s value from the starting position does not fit on the board"
+        error2 = "the %s (the %s value of the starting position) does not fit on the board"
         row_column = start_position.split(".")      
         assert len(row_column) is 2, "start position must contain exactly one '.' period"
         try:

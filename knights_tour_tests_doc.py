@@ -73,6 +73,7 @@ def get_new_position(rows, columns, row, column, rdelta, cdelta):
 
 def equal_position(rows, columns, row1, column1, row2, column2):
     """
+    ensure the position with the same coordinates will be considered equal
     >>> equal_position(rows=8, columns=8, row1=8, column1=8, row2=8, column2=8)
     True
     >>> equal_position(rows=8, columns=8, row1=8, column1=11, row2=8, column2=11)
