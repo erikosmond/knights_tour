@@ -58,7 +58,7 @@ class Tour(object):
                     raise MoveError(best_move.get_position())
                 t = Trace(count, best_move.get_position(), retrace=False)
             count += 1
-        return self.knight, count
+        return self.knight, count, self.board
     
     def _check_closed_tour(self, position, count):
         if len(self.knight.visited_positions) == (self.board.size -1) and self.closed == True:

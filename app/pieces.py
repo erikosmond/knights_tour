@@ -2,7 +2,7 @@ from app.verbose import Verbose
 
 class GameError(Exception):
     def __init__(self):
-        print "Tour didn't work"
+        print "No solutions found\n"
 
 class ChessPiece(object):
 

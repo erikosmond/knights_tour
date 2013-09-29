@@ -1,3 +1,4 @@
+import time
 from app.verbose import Verbose
 
 class Board(object):
@@ -15,6 +16,65 @@ class Board(object):
         row_depth = min(row, self.rows-row+1, 3)
         column_depth = min(column, self.columns-column+1, 3)
         return self.moves.get(column_depth + row_depth, None)
+    
+    def html_board(self):
+        coordinates = []
+        for row in range(1, self.rows+1):
+            for column in range(1, self.columns+1):
+                p = Position(row, column, self)
+                coordinates.append(p)
+	css = self.get_css()
+        table = [r'<table border=1 width="400" height="400" table-layout="fixed">']
+        row = 0
+        for p in coordinates:
+            square = r'OddSquare'
+            if p.row > row:
+                if row != 0:
+                    table.append(r'</tr>')
+                row = p.row
+                table.append(r'<tr>')    
+            if (p.row + p.column) % 2 == 0:
+                square = r'EvenSquare'
+            table.append(r'<td class="'+ square + r'" id="'+p.str_coordinate + r'"</td>')
+        table.extend([r'</tr>', r'</table>'])
+	css.extend(table)
+	html_table = ''.join(css)
+        timestamp = str(int(time.time()))
+	#fp = open("./ChessBoard-" + timestamp + ".html", "w+")
+        #fp.write(html_table)
+        #fp.close()
+	return html_table
+		
+    def get_css(self):
+	css = [
+	    r'<style>',
+	    r'.EvenSquare {',
+	    r'padding: 0;',
+	    r'background: #55c1eb;',
+	    r'color: #55c1eb;',
+	    r'padding-bottom: 0px;',
+	    r'table-layout:fixed;',
+	    r'width:100px;',
+	    r'overflow:hidden;',
+	    r'font-size: large;',
+	    r'text-align: center;',
+	    r'word-wrap: break-word;',
+	    r'}',
+	    r'.OddSquare {',
+	    r'padding: 0;',
+	    r'background: #d10606;',
+	    r'color: #d10606;',
+	    r'padding-bottom: 0px;',
+	    r'table-layout:fixed;',
+	    r'width:100px;',
+	    r'overflow:hidden;',
+	    r'font-size: large;',
+	    r'text-align: center;',
+	    r'word-wrap: break-word;',
+	    r'</style>',
+	]
+	return css
+	
 
 class Position(object):
 
@@ -22,6 +82,7 @@ class Position(object):
         self.row = row
         self.column = column
         self.coordinate = (row, column)
+        self.str_coordinate = str(row)+'.'+str(column)
         self.board = board
         self.verbosity = Verbose(verbosity)
         self.fits_on_board = self._check_board()

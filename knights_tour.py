@@ -1,5 +1,5 @@
 from app.board import Board, Position
-from app.pieces import ChessPiece, Knight
+from app.pieces import ChessPiece, Knight, GameError
 from app.verbose import Verbose
 from app.tour import Tour
 
@@ -7,14 +7,10 @@ import time
 import json
 import logging
 import multiprocessing
-
-class GameError(Exception):
-    def __init__(self):
-        print "tour didn't work"
         
 #I should consider logging so I can view STDOUT and have it write to disk 
 
-def main(rows=8, columns=8, starting_location="1.1", save=False, verbosity=576, closed=True): #512 is just completed tour, 577 is good, was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
+def main(rows=5, columns=5, starting_location="1.1", save=False, verbosity=512, closed=False): #512 is just completed tour, 64 is what i want for testing, 577 is good, was 907 then 1023 then 393 then 193(good for full test) then 201 then 73
 #def main(rows=None, columns=None, starting_location=None, save=None, closed=None, verbosity=None):
     if None in [rows, columns, starting_location, verbosity]:
         print "\tEnter 'e' or 'exit' to skip the prompts and exit the program...\n"
@@ -58,20 +54,20 @@ def main(rows=8, columns=8, starting_location="1.1", save=False, verbosity=576, 
     start_time = time.time()
     
     t = Tour(rows, columns, starting_location, verbosity, closed)
-    try:
+    #try:
         #results = t.run
-        knight, count = t.run()
+    knight, count, board = t.run()
         #run multiple instances of the tour, and the one with the smallest difference between
         #their biggest tour and rebound down to smallest  visited positions.
         #big rebounds means a lot of possiblilities were ruled out
-    except GameError:
-        print "took", time.time() - start_time
-        return
     print "\tFound result!"
-    print "\tThe simulation lasted", str(count), "moves and took", str(round(time.time() - start_time, 4)), "seconds"
+    table = board.html_board()
+     
+    v = Verbose(verbosity)
     if verbosity >= 512:
-        v = Verbose(512)
+        print "\tThe simulation lasted", str(count), "moves and took", str(round(time.time() - start_time, 4)), "seconds"
         v.board(knight, final=True)
+    v.progress(count, knight)
     
     if save == True:
         final_tour = knight.get_tour()
@@ -85,7 +81,10 @@ def main(rows=8, columns=8, starting_location="1.1", save=False, verbosity=576, 
 #"""
 if __name__ == "__main__":
     print "Welcome to Knights Tour!\n"
-    main()
+    try:
+        main()
+    except GameError:
+        pass
 #"""
 
 def test_data(rows=3, columns=3, row=2, column=6, start="4.5"):

@@ -2,7 +2,7 @@ class Verbose(object):
     
     Initialized = False
     
-    def __init__(self, verbosity):
+    def __init__(self, verbosity, show_info=False):
         assert type(verbosity) is int, "verbose takes an integer value of 0-31"
         self.verbose_int = verbosity
         self.info = """
@@ -18,8 +18,8 @@ class Verbose(object):
         bit 9[-10](512) - final positions
         """
         #create an 8bit string representing the verbose type mask
-        self.verbose = bin(verbosity)[2:].zfill(10)
-
+        self.verbose = bin(verbosity)[2:].zfill(10) 
+        self.show_info = show_info
         #values for development and debugging
         self.min_max_switch = int(self.verbose[-1])
         self.retrace_switch = int(self.verbose[-2])
@@ -33,8 +33,8 @@ class Verbose(object):
 
         #for final user to see resulting position
         self.final_positions_switch = int(self.verbose[-10])
-
-        self._print_verbose_info()
+        if self.show_info == True:
+            self._print_verbose_info()
         Verbose.Initialized = True
             
     def min_max(self, tour, largest_tour):
@@ -75,11 +75,16 @@ class Verbose(object):
                 for pos in tour.knight.visited_positions:
                     print pos
 
-    def progress(self, count):
-        if self.progress_switch:                            
+    def progress(self, count, chess_piece=None):
+        if self.progress_switch:
             if count % 10000 == 0:
                 print str(count), "moves tried so far"
-
+            if chess_piece != None:
+                final_positions = []
+                for i in chess_piece.visited_positions:
+                    final_positions.append(i.coordinate)
+                print final_positions
+                
     def every_move(self, move):
         if self.every_move_switch:
             print "moving to", move
