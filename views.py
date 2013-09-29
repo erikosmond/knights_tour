@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render_to_response
 from chess_forms import StartTourForm
 
 from app.tour import Tour
+from app.pieces import GameError
 
 def index(request):
     #return HttpResponse("Hello, Notes")
@@ -15,8 +16,8 @@ def index(request):
         if form.is_valid():
             print "Form is valid",
             # user registration or login code
-            rows = request.POST.get("rows",None)
-            columns = request.POST.get("columns",None)
+            rows = int(request.POST.get("rows",None))
+            columns = int(request.POST.get("columns",None))
             starting_row = request.POST.get("starting_row",None)
             starting_column = request.POST.get("starting_column",None)
             closed = False #add this value from the form then use it here
@@ -26,18 +27,23 @@ def index(request):
                 return HttpResponse("Username or password not present")
             starting_location = str(starting_row) + '.' + str(starting_column)
             print "Starting Tour"
-            t = Tour(rows, columns, starting_location, verbosity, closed)
-            knight, count, board = t.run()
-            
+            try:
+                t = Tour(rows, columns, starting_location, verbosity, closed)
+                knight, count, board = t.run()
+            except GameError:
+                return HttpResponse("No solution available")
             
             positions = []
             for p in knight.visited_positions:
                 positions.append(p.str_coordinate)
             
-            
-            
+            column_var = 13 - int(columns)
+            cell_s = column_var*12
+            cell_size = r'"' + str(cell_s) + r'"px'
+            table_width = r'"' + str(cell_s * columns + columns) + r'"px'
+            table_height = r'"' + str(cell_s * rows + rows) + r'"px'
             template=loader.get_template("tour.html")
-            rc=RequestContext(request,{'cells':positions, "rows":rows, "columns":columns, "len_positions":len(str(positions))-1})
+            rc=RequestContext(request,{'cells':positions, "rows":rows, "columns":columns, "len_positions":len(str(positions))-1, "cell_size":cell_size, "table_width":table_width, "table_height":table_height})
             return HttpResponse(template.render(rc)) 
             
             #return redirect(dashboard)

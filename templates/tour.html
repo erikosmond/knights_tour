@@ -10,15 +10,8 @@
     <script>
 	var i = 0;
 	//cells = ["1.1", "2.3", "1.5", "3.4", "5.5", "4.3", "5.1", "3.2", "4.4", "5.2", "3.1", "1.2", "2.4", "4.5", "5.3", "4.1", "2.2", "1.4", "3.5", "5.4", "4.2", "2.1", "1.3", "2.5", "3.3"];
-	cells = "{{ cells }}".replace(/&#39;/g,"\"").substring(1,parseInt("{{ len_positions }}"))//.split(",")
-        ty = typeof cells
-        alert(ty)
+	cells = "{{ cells }}".replace(/&#39;/g,"\"").substring(1,parseInt("{{ len_positions }}"))
         cells_array = JSON.parse("[" + cells + "]")
-        var cells = [cells];
-        ty2 = typeof cells
-        alert(ty2)
-        //alert(["example","array","format"])
-        alert(cells)
         
 	function setValues() {
 	    setTimeout(function () {
@@ -37,11 +30,20 @@
             tbl = document.createElement('table'),
             tbdy = document.createElement('tbody');
     
+        tbl.style.height = "{{ table_height }}".replace(/&quot;/g,"")
+        tbl.style.width = "{{ table_width }}".replace(/&quot;/g,"")
         for(var i=1; i<=numRows; i++) {
             var tr = document.createElement('tr');
             for(var j=1; j<=numColumns; j++) {
                 var td = document.createElement('td');
+                td.style.height = "{{ cell_size }}".replace(/&quot;/g,"");
+                td.style.width = "{{ cell_size }}".replace(/&quot;/g,"");
                 td.id = i+"."+j;
+                //if (i+j % 2 == 0)
+                    //td.className = "EvenSquare";
+                //else
+                    //td.className = "OddSquare";
+       
                 i % 2 == 0 ? 
                     j % 2 == 0 ? td.className = "EvenSquare" : td.className = "OddSquare" 
                 : j % 2 == 0 ? td.className = "OddSquare" : td.className = "EvenSquare";
@@ -58,12 +60,8 @@
     <style>
     table {
     border-collapse: collapse;
-    width: 505px;
-    height: 505px;
     }
 	td {
-    width: 100px;
-    height: 100px;
     padding: 0px;
     border: 1px solid black;
 	}
