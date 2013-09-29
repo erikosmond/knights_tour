@@ -1,0 +1,6 @@
+<h3>Hello, {{ username }}</h3>
+
+<form name="loginform" action="/knights_tour/index/" method="post">{% csrf_token %}
+	{{ form.as_p }}
+    <input type="submit"/>
+</form>

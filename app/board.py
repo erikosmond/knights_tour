@@ -1,5 +1,5 @@
+from verbose import Verbose
 import time
-from app.verbose import Verbose
 
 class Board(object):
 

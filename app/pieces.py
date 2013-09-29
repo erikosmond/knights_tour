@@ -1,4 +1,4 @@
-from app.verbose import Verbose
+from verbose import Verbose
 
 class GameError(Exception):
     def __init__(self):

@@ -1,8 +1,8 @@
-from app.board import Board, Position
-from app.pieces import Knight
-from app.verbose import Verbose
-from app.move import Move
-from app.trace import Trace
+from board import Board, Position
+from pieces import Knight
+from verbose import Verbose
+from move import Move
+from trace import Trace
 
 class MoveError(Exception):
     
