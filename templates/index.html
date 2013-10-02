@@ -1,6 +1,86 @@
-<h3>Hello, {{ username }}</h3>
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>
+			Knight's Tour
+		</title>
+	</head>
+	<body>
+{% if Error %}
+	<p>{{Error}}</p>
+{% endif %}
+<h3>The Knight's Tour</h3>
+<p> Choose the size of the board by entering a number of rows and columns.</br>
+For best performance, choose a number between 5 and 10.</br>
+The board need not be a square. You could, for example, have 7 columns and 8 rows.</br>
+The starting row and column give the knight its initial position.
+</p>
 
-<form name="loginform" action="/knights_tour/index/" method="post">{% csrf_token %}
+<form name="chess_input" action="/knights_tour/index/" method="post">{% csrf_token %}
+	<select name="rows">
+		<option value="4">4</option>
+		<option value="5">5</option>
+		<option value="6">6</option>
+		<option value="7">7</option>
+		<option value="8" selected="8">8</option>
+		<option value="9">9</option>
+		<option value="10">10</option>
+		<option value="11">11</option>
+		<option value="12">12</option>
+	</select>
+	<select name="columns">
+		<option value="4">4</option>
+		<option value="5">5</option>
+		<option value="6">6</option>
+		<option value="7">7</option>
+		<option value="8" selected="8">8</option>
+		<option value="9">9</option>
+		<option value="10">10</option>
+		<option value="11">11</option>
+		<option value="12">12</option>
+	</select>
+	<select name="starting_row">
+		<option value="1" selected="1">1</option>
+		<option value="2">2</option>
+		<option value="3">3</option>
+		<option value="4">4</option>
+		<option value="5">5</option>
+		<option value="6">6</option>
+		<option value="7">7</option>
+		<option value="8">8</option>
+		<option value="9">9</option>
+		<option value="10">10</option>
+		<option value="11">11</option>
+		<option value="12">12</option>
+	</select>
+	<select name="starting_column">
+		<option value="1" selected="1">1</option>
+		<option value="2">2</option>
+		<option value="3">3</option>
+		<option value="4">4</option>
+		<option value="5">5</option>
+		<option value="6">6</option>
+		<option value="7">7</option>
+		<option value="8">8</option>
+		<option value="9">9</option>
+		<option value="10">10</option>
+		<option value="11">11</option>
+		<option value="12">12</option>
+	</select>
+	<input type="radio" name="tour_type" value="Open" checked>Open
+	<input type="radio" name="tour_type" value="Closed">Closed
+	
+	<!--input type="select" name="rows">
+	<input type="hidden" name="columns">
+	<input type="hidden" name="starting_row">
+	<input type="hidden" name="starting_column"-->
+	<input type="submit" value="Start Tour">
+</form>	
+	
+<!--form name="loginform" action="/knights_tour/index/" method="post">{% csrf_token %}
 	{{ form.as_p }}
     <input type="submit"/>
-</form>
+</form-->
+
+	</body>
+</html>

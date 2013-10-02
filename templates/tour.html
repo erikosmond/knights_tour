@@ -43,10 +43,11 @@
                     //td.className = "EvenSquare";
                 //else
                     //td.className = "OddSquare";
-       
-                i % 2 == 0 ? 
-                    j % 2 == 0 ? td.className = "EvenSquare" : td.className = "OddSquare" 
-                : j % 2 == 0 ? td.className = "OddSquare" : td.className = "EvenSquare";
+                (i+j) % 2 == 0 ? td.className = "EvenSquare" : td.className = "OddSquare";
+		
+		//i % 2 == 0 ? 
+                    //j % 2 == 0 ? td.className = "EvenSquare" : td.className = "OddSquare" 
+                //: j % 2 == 0 ? td.className = "OddSquare" : td.className = "EvenSquare";
                 
                 tr.appendChild(td)
             }
@@ -81,5 +82,7 @@
 <!--Adobe Edge Runtime End-->
 </head>
 <body onload="tableCreate()">
+    <p>Solution found in {{count}} moves</p>
+    <a href="/knights_tour/index/">Do another tour</a>
 </body>
 </html>
