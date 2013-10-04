@@ -1,5 +1,5 @@
 from board import Board, Position
-from pieces import Knight
+from pieces import Knight, GameError
 from verbose import Verbose
 from move import Move
 from trace import Trace
@@ -13,13 +13,14 @@ class MoveError(Exception):
 
 class Tour(object):
 
-    def __init__(self, rows, columns, start_position, verbosity=0, closed=False):
+    def __init__(self, rows, columns, start_position, verbosity=0, closed=False, move_limit=None):
         self.verbosity = Verbose(verbosity)
         self.closed = closed
         self.board = Board(rows, columns, self.verbosity.verbose_int)
         self.start_position = self._generate_start_position(start_position)
         self.retrace = 0 #just in case I want to set up a retrace counter
         self.end_positions = None
+        self.move_limit = move_limit
         
     def run(self):
         self.knight = Knight(self.start_position, self.verbosity.verbose_int)
@@ -28,7 +29,7 @@ class Tour(object):
         count = 0
         largest_tour = 0
         complete = False
-        while len(self.knight.visited_positions) < self.board.size:
+        while len(self.knight.visited_positions) < self.board.size and self._check_limit(count):
             #garner stats
             largest_tour = self.verbosity.min_max(self, largest_tour)
             self.verbosity.potential_OBOB(self)
@@ -70,6 +71,14 @@ class Tour(object):
                 previous_position = self.knight.retrace()
                 t = Trace(count, previous_position, retrace=True)
             return True 
+    
+    def _check_limit(self, count):
+        if self.move_limit == None:
+            return True
+        elif count > self.move_limit:
+            raise GameError()
+        else:
+            return True
     
     def _generate_start_position(self, start_position):
         error1 = "The %s value of your start position must be an integer.  Please enter the starting location in the following format: 4.5"

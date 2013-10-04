@@ -25,23 +25,28 @@ def index(request):
                 closed = True
             #get speed and size from the user as well
             verbosity = 0
+            move_limit = 150000
             if not rows or not columns or not starting_row or not starting_column:
                 return HttpResponse("One or more fields are missing")
             starting_location = str(starting_row) + '.' + str(starting_column)
             print "Starting Tour"
-            print closed
+            print "closed = ", closed
             try:
-                t = Tour(rows, columns, starting_location, verbosity, closed)
+                t = Tour(rows, columns, starting_location, verbosity, closed, move_limit=move_limit)
                 knight, count, board = t.run()
             except GameError:
-                return HttpResponse("No solution available")
+                template=loader.get_template("index.html")
+                rc=RequestContext(request,{'Error':'No solution could be found in ' + str(move_limit) + ' moves, please try again. The number of moves attempted in solving the puzzle has been capped to reduce server load.', "form":form})
+                return HttpResponse(template.render(rc))  
+                #return HttpResponse("No solution available")
+                #instead return the index page but with an error message - please try again
             
             positions = []
             for p in knight.visited_positions:
                 positions.append(p.str_coordinate)
             
-            column_var = 13 - int(columns)
-            cell_s = column_var*12
+            column_var = 19 - int(columns)
+            cell_s = min(column_var*12,90)
             cell_size = r'"' + str(cell_s) + r'"px'
             table_width = r'"' + str(cell_s * columns + columns) + r'"px'
             table_height = r'"' + str(cell_s * rows + rows) + r'"px'
