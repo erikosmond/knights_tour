@@ -8,7 +8,7 @@ from chess_forms import StartTourForm
 from app.tour import Tour
 from app.pieces import GameError
 
-def index(request):
+def choose_tour(request):
     #return HttpResponse("Hello, Notes")
     if request.method=="POST":
         print "Received POST"
@@ -35,7 +35,7 @@ def index(request):
                 t = Tour(rows, columns, starting_location, verbosity, closed, move_limit=move_limit)
                 knight, count, board = t.run()
             except GameError:
-                template=loader.get_template("index.html")
+                template=loader.get_template("choose_tour.html")
                 rc=RequestContext(request,{'Error':'No solution could be found in ' + str(move_limit) + ' moves, please try again. The number of moves attempted in solving the puzzle has been capped to reduce server load.', "form":form})
                 return HttpResponse(template.render(rc))  
                 #return HttpResponse("No solution available")
@@ -65,10 +65,16 @@ def index(request):
             print "Form is not valid"
             for error in form.errors:
                 print error
-            template=loader.get_template("index.html")
+            template=loader.get_template("choose_tour.html")
             rc=RequestContext(request,{'Error':'There was an error loading the page', "form":form})
             return HttpResponse(template.render(rc))            
     else:
-        template=loader.get_template("index.html")
+        template=loader.get_template("choose_tour.html")
         rc=RequestContext(request,{'username':"Erik"})#, "form":StartTourForm()}) #HtmlTourForm
         return HttpResponse(template.render(rc))
+    
+def index(request):
+    template=loader.get_template("index.html")
+    rc=RequestContext(request,{'username':"Erik"})
+    return HttpResponse(template.render(rc))
+    

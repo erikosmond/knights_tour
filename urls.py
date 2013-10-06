@@ -4,7 +4,7 @@ from django.conf.urls import patterns, include, url
 # from django.contrib import admin
 # admin.autodiscover()
 
-from views import index
+from views import choose_tour, index
 
 urlpatterns = patterns('',
     # Examples:
@@ -16,5 +16,6 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
-    url(r'^index/', index, name="index"),
+    url(r'^index', choose_tour, name="choose_tour"),
+    url(r'^$', index, name="index"),
 )
