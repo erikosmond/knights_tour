@@ -1,37 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
+		<meta charset="utf-8">
 		<title>
 			Knight's Tour
 		</title>
+		<script type="text/javascript" src="../static/scripts/tour_validation.js">
+		</script>
 		<script>
-			function validateStartColumn() {
-				var columns = document.getElementById("columns");
-				var columns_value = columns.options[columns.selectedIndex].value;
-				var start_column = document.getElementById("starting_column");
-				var sc_value = start_column.options[start_column.selectedIndex].value;
-				//alert("columns: " + columns_value + " starting column: " + sc_value);
-				if (parseInt(sc_value) > parseInt(columns_value)) {
-					alert("Your starting column does not fit on the board. Please choose a number less than or equal to the number of columns on the board")
-					start_column.value = columns_value;
-				}
-			}
-			function validateStartRow() {
-				var rows = document.getElementById("rows");
-				var rows_value = rows.options[rows.selectedIndex].value;
-				var start_row = document.getElementById("starting_row");
-				var sr_value = start_row.options[start_row.selectedIndex].value;
-				//alert("columns: " + columns_value + " starting column: " + sc_value);
-				if (parseInt(sr_value) > parseInt(rows_value)) {
-					alert("Your starting row does not fit on the board. Please choose a number less than or equal to the number of rows on the board")
-					start_row.value = rows_value;
-				}
-			}
 			function disableButton() {
 				document.getElementById("tour_button").disabled = 'true';
 				alert("Currently searching for a solution. This could take several minutes. Starting the search again will not improve performance.");
 			}
 		</script>
+    <style>
+    table {
+    border-collapse: collapse;
+    }
+	td {
+    padding: 0px;
+    border: 1px solid black;
+	}
+	.tour_choice_segment {
+	font-size: 36px;
+	text-align: center;
+	background-size: 80px 60px;
+	}
+	#boardSize {
+	background: #59751D;
+	color: #FFFFFF;
+	}
+	.OddSquare {
+	background: #FAFAFA;
+	color: #000000;
+	}
+    </style>
 	</head>
 	<body>
 {% if Error %}
@@ -45,11 +48,13 @@
 	and the square on which the knight begins the tour.
 </p>
 
-<form name="chess_input" action="/knights_tour/choose_tour/" method="post">{% csrf_token %}
+<form id="tour_choice_form" name="chess_input" action="/knights_tour/choose_tour/" method="post">{% csrf_token %}
+	<div id="boardSize" class="tour_choice_segment">
 	<h4>Board Size</h4>
 	<p>
 	For best performance, choose a number between 5 and 10.</br>
 	The board need not be a square. You could, for example, have 7 rows and 8 columns.</br></br>
+	</p>
 	Rows
 	<select name="rows" id="rows">
 		<option value="4">4</option>
@@ -75,9 +80,10 @@
 		<option value="11">11</option>
 		<option value="12">12</option>
 	</select>
-	</p>
+	</div>
+	<div id="starting_position" class="tour_choice_segment">
 	<h4>Knight's Starting Position</h4>
-	<p>Starting Row
+	Starting Row
 	<select name="starting_row" id="starting_row" onclick="validateStartRow();">
 		<option value="1" selected="1">1</option>
 		<option value="2">2</option>
@@ -108,7 +114,8 @@
 		<option value="11">11</option>
 		<option value="12">12</option>
 	</select>
-	</p>
+	</div>
+	<div id="tour_type" class="tour_choice_segment">
 	<h4>Tour Type</h4>
 	<p> A closed tour is one in which the knight's final position is one knight's move from the starting position. 
 	It typically takes much longer to find a solution to a closed tour, if such a solution exists.</br>
@@ -117,11 +124,12 @@
 	<input type="radio" name="tour_type" value="Open" checked>Open
 	<!-- put tab here style.padding-left:5em &#09;-->
 	<input type="radio" name="tour_type" value="Closed">Closed
-
+	</div>
 	</br></br>
 	<input type="submit" value="Start Tour" id="tour_button" onclick="setTimeout(disableButton, 10);">
-</form>	
-	
+</form>
+<p><a href="/" style="alignment-adjust: baseline">Return to homepage</a></p>
+
 <!--form name="loginform" action="/knights_tour/index/" method="post">{% csrf_token %}
 	{{ form.as_p }}
     <input type="submit"/>
