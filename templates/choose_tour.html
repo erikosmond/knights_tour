@@ -5,12 +5,34 @@
 		<title>
 			Knight's Tour
 		</title>
-		<script type="text/javascript" src="../static/scripts/tour_validation.js">
-		</script>
+		<!--script type="text/javascript" src="../static/scripts/tour_validation.js">
+		</script-->
 		<script>
 			function disableButton() {
 				document.getElementById("tour_button").disabled = 'true';
 				alert("Currently searching for a solution. This could take several minutes. Starting the search again will not improve performance.");
+			}
+			function validateStartColumn() {
+				var columns = document.getElementById("columns");
+				var columns_value = columns.options[columns.selectedIndex].value;
+				var start_column = document.getElementById("starting_column");
+				var sc_value = start_column.options[start_column.selectedIndex].value;
+				//alert("columns: " + columns_value + " starting column: " + sc_value);
+				if (parseInt(sc_value) > parseInt(columns_value)) {
+					alert("Your starting column does not fit on the board. Please choose a number less than or equal to the number of columns on the board")
+					start_column.value = columns_value;
+				}
+			}
+			function validateStartRow() {
+				var rows = document.getElementById("rows");
+				var rows_value = rows.options[rows.selectedIndex].value;
+				var start_row = document.getElementById("starting_row");
+				var sr_value = start_row.options[start_row.selectedIndex].value;
+				//alert("columns: " + columns_value + " starting column: " + sc_value);
+				if (parseInt(sr_value) > parseInt(rows_value)) {
+					alert("Your starting row does not fit on the board. Please choose a number less than or equal to the number of rows on the board")
+					start_row.value = rows_value;
+				}
 			}
 		</script>
     <style>
@@ -42,28 +64,31 @@
 	<p>{{Error}}</p>
 {% endif %}
 
-<div id="selectionContainer" style="background-color:#FF0000;height:80px;width:990px;text-align: justify;margin-bottom: 20px">
+<div id="selectionContainer" style="background-color:#FF0000;height:80px;width:1030px;text-align: justify;margin-bottom: 20px">
 <h3>The Knight's Tour</h3>
+<div id="titleContent" style="background-color:#D8D8D8;margin: 5px;">
 <p>
 	Welcome to the knight's tour, a centries-old challenge of moving a
 	knight on a chess board to every square exactly once.
 	By selecting the options below, you may choose the size of the board
 	and the square on which the knight begins the tour.
 </p>
-
+</div>
+</div>
 <form id="tour_choice_form" name="chess_input" action="/knights_tour/choose_tour/" method="post">{% csrf_token %}
 	
 	<!--div id="boardSize" class="tour_choice_segment"-->
-	<div id="selectionContainer" style="height:320px;width:990px;text-align: justify;">
-	<div id="boardSizes" style="background-color:#00FF00;height:300px;width:270px;float:left;">
+	<div id="selectionContainer" style="height:320px;width:1010px;text-align: justify;">
+	<div id="boardSizes" style="background-color:#00FF00;height:320px;width:270px;margin-left: 20px;float:left;">
 
 
 	<h4>Board Size</h4>
+	<div id="boardSizesContent" style="background-color:#D8D8D8;margin: 5px;height:250px;">	
 	<p>
 	For best performance, choose a number between 5 and 10.
 	The board need not be a square. You could, for example, have 7 rows and 8 columns.</br></br>
 	</p>
-	Rows
+	
 	<select name="rows" id="rows">
 		<option value="4">4</option>
 		<option value="5">5</option>
@@ -75,8 +100,9 @@
 		<option value="11">11</option>
 		<option value="12">12</option>
 	</select>
+	Rows
 	<!-- put tab here style.padding-left:5em &#09;-->
-	Columns
+	</br></br>
 	<select name="columns" id="columns" >
 		<option value="4">4</option>
 		<option value="5">5</option>
@@ -88,30 +114,32 @@
 		<option value="11">11</option>
 		<option value="12">12</option>
 	</select>
+	Columns
 	</div>
-	
-	<div id="startingPositions" style="background-color:#FFFF00;height:300px;width:330px;float:left;margin-left: 20px">
-	
+	</div>
+	<div id="startingPositions" style="background-color:#FFFF00;height:320px;width:330px;float:left;margin-left: 20px">
+
 	<!--div id="startingPosition" class="tourChoiceSegment"-->
 	<h4>Knight's Starting Position</h4>
+	<div id="startingPositionContent" style="background-color:#D8D8D8;margin: 5px;height:250px;">
+	<select name="starting_row" id="starting_row" onclick="validateStartRow();" onblur="validateStartRow();">
+		<option value="1" selected="1">1</option>
+		<option value="2">2</option>
+		<option value="3">3</option>
+		<option value="4">4</option>
+		<option value="5">5</option>
+		<option value="6">6</option>
+		<option value="7">7</option>
+		<option value="8">8</option>
+		<option value="9">9</option>
+		<option value="10">10</option>
+		<option value="11">11</option>
+		<option value="12">12</option>
+	</select>
 	Starting Row
-	<select name="starting_row" id="starting_row" onclick="validateStartRow();">
-		<option value="1" selected="1">1</option>
-		<option value="2">2</option>
-		<option value="3">3</option>
-		<option value="4">4</option>
-		<option value="5">5</option>
-		<option value="6">6</option>
-		<option value="7">7</option>
-		<option value="8">8</option>
-		<option value="9">9</option>
-		<option value="10">10</option>
-		<option value="11">11</option>
-		<option value="12">12</option>
-	</select>
 	<!-- put tab here style.padding-left:5em &#09;-->	
-	Starting Column
-	<select name="starting_column" id="starting_column" onclick="validateStartColumn();">
+	</br></br>
+	<select name="starting_column" id="starting_column" onclick="validateStartColumn();" onblur="validateStartColumn();">
 		<option value="1" selected="1">1</option>
 		<option value="2">2</option>
 		<option value="3">3</option>
@@ -125,25 +153,28 @@
 		<option value="11">11</option>
 		<option value="12">12</option>
 	</select>
+	Starting Column	
+	</div>
 	</div>
 	
-	
-	<div id="tourTypes" style="background-color:#0000FF;height:300px;width:350px;float:left;margin-left: 20px">
+	<div id="tourTypes" style="background-color:#0000FF;height:320px;width:350px;float:left;margin-left: 20px">
 	<!--div id="tour_type" class="tour_choice_segment" style="background-color:#FFD700"-->
 	
 	
 	<h4>Tour Type</h4>
+	<div id="tourTypeContent" style="background-color:#D8D8D8;margin: 5px;height:250px;">
 	<p> A closed tour is one in which the knight's final position is one knight's move from the starting position. 
 	It typically takes much longer to find a solution to a closed tour, if such a solution exists.
 	An open tour is one in which the knight visits every square exactly once, but the final position could be any square on the board.
 	</p>
 	<input type="radio" name="tour_type" value="Open" checked>Open
 	<!-- put tab here style.padding-left:5em &#09;-->
-	<input type="radio" name="tour_type" value="Closed">Closed
+	</br></br><input type="radio" name="tour_type" value="Closed">Closed
+	</div>
 	</div>
 	</br></br>
 	</div>
-	<input type="submit" value="Start Tour" id="tour_button" onclick="setTimeout(disableButton, 10);">
+	<input type="submit" value="Start Tour" id="tour_button" onclick="validateStartColumn();validateStartRow();setTimeout(disableButton, 10);">
 </form>
 <p><a href="/" style="float:none;">Return to homepage</a></p>
 
