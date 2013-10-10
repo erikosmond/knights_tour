@@ -31,6 +31,7 @@ def choose_tour(request):
             starting_location = str(starting_row) + '.' + str(starting_column)
             print "Starting Tour"
             print "closed = ", closed
+            print "starting_location", starting_location
             try:
                 t = Tour(rows, columns, starting_location, verbosity, closed, move_limit=move_limit)
                 knight, count, board = t.run()

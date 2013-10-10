@@ -1,0 +1,26 @@
+    table {
+    border-collapse: collapse;
+    }
+	td {
+    padding: 0px;
+    border: 1px solid black;
+	}
+	.tourChoiceSegment {
+	font-size: 16px;
+	text-align: justify;
+	background-size: 180px 160px;
+	display: inline-block;
+	}
+	#boardSize {
+	background: #59751D;
+	color: #FFFFFF;
+	}
+	#startingPosition {
+	background: #FAFAFA;
+	color: #000000;
+	}
+	.selectorContent{
+	background-color:#D8D8D8;
+	margin: 5px;
+	height:250px;
+	}

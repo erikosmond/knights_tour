@@ -5,68 +5,172 @@
 		<title>
 			Knight's Tour
 		</title>
-		<!--script type="text/javascript" src="../static/scripts/tour_validation.js">
-		</script-->
+		<script type="text/javascript" src="/static/scripts/tour_validation.js">
+		</script>
 		<script>
+			var existingTable = 0,
+			    knightPosition = "1.1",
+			    numColumns = 8,
+			    numRows = 8,
+			    startingRow = 1,
+			    startingColumn = 1;
+			
 			function disableButton() {
 				document.getElementById("tour_button").disabled = 'true';
 				alert("Currently searching for a solution. This could take several minutes. Starting the search again will not improve performance.");
 			}
-			function validateStartColumn() {
-				var columns = document.getElementById("columns");
-				var columns_value = columns.options[columns.selectedIndex].value;
-				var start_column = document.getElementById("starting_column");
-				var sc_value = start_column.options[start_column.selectedIndex].value;
-				//alert("columns: " + columns_value + " starting column: " + sc_value);
-				if (parseInt(sc_value) > parseInt(columns_value)) {
-					alert("Your starting column does not fit on the board. Please choose a number less than or equal to the number of columns on the board")
-					start_column.value = columns_value;
+			function setKnight() {
+				var table = document.getElementById('chessBoard'),
+				cells = table.getElementsByTagName('td');
+				//alert(cells);
+				for (var i=0,len=cells.length; i<len; i++){
+				    cells[i].onclick = function(){
+					document.getElementById("1.1").innerHTML = "<div></div>";
+					document.getElementById(knightPosition).innerHTML = "<div></div>";
+					this.innerHTML = "<img height=\"24px\" src=\"/static/images/Chess_nlt60.png\">";
+					knightPosition = this.id;
+					var knightArray = knightPosition.split(".");
+					startingRow = parseInt(knightArray[0]);
+					startingColumn = parseInt(knightArray[1]);
+					document.getElementById("starting_row").value = knightArray[0];
+					document.getElementById("starting_column").value = knightArray[1];
+					console.log(this.id);
+					//console.log(this.innerHTML);
+					/* if you know it's going to be numeric:
+					console.log(parseInt(this.innerHTML),10);
+					*/
+				    }
 				}
 			}
-			function validateStartRow() {
+			function resetKnight() {
 				var rows = document.getElementById("rows");
-				var rows_value = rows.options[rows.selectedIndex].value;
-				var start_row = document.getElementById("starting_row");
-				var sr_value = start_row.options[start_row.selectedIndex].value;
-				//alert("columns: " + columns_value + " starting column: " + sc_value);
-				if (parseInt(sr_value) > parseInt(rows_value)) {
-					alert("Your starting row does not fit on the board. Please choose a number less than or equal to the number of rows on the board")
-					start_row.value = rows_value;
+				numRows = parseInt(rows.options[rows.selectedIndex].value);
+				var columns = document.getElementById("columns");
+				numColumns = columns.options[columns.selectedIndex].value;
+				if (startingRow > numRows) {
+					//alert("Not enough rows for the knight's current position");
+					document.getElementById("starting_row").value = "1";
+					document.getElementById("starting_column").value = "1";
+					startingRow = 1;
+					startingColumn = 1;
+					knightPosition = "1.1";
+					document.getElementById(knightPosition).innerHTML = "<img height=\"24px\" src=\"/static/images/Chess_nlt60.png\">";
 				}
+				if (startingColumn > numColumns) {
+					//alert("Not enough columns for the knight's current position");
+					document.getElementById("starting_row").value = "1";
+					document.getElementById("starting_column").value = "1";
+					startingRow = 1;
+					startingColumn = 1;
+					knightPosition = "1.1";
+					document.getElementById(knightPosition).innerHTML = "<img height=\"24px\" src=\"/static/images/Chess_nlt60.png\">";
+				}
+
 			}
+			function tableCreate() {
+				resetKnight();
+				var start_column = document.getElementById("columns");
+				//numColumns = parseInt(start_column.options[start_column.selectedIndex].value);
+				var start_row = document.getElementById("rows");
+				//numRows = parseInt(start_column.options[start_row.selectedIndex].value);
+				var body = document.body,
+				    height = "48px",
+				    width = "48px",
+				    tbl = document.createElement('table'),
+				    tbdy = document.createElement('tbody');
+				//var h = toString(numRows*height)+"px";
+				//alert(h)
+				//tbl.style.height = "180px";
+				//tbl.style.width = "180px";
+				tbl.style.margin = "10px";
+				tbl.id = "chessBoard"
+				for(var i=1; i<=numRows; i++) {
+				    var tr = document.createElement('tr');
+				    for(var j=1; j<=numColumns; j++) {
+					var td = document.createElement('td');
+					td.style.maxHeight = height;
+					td.style.maxWidth = width;
+					td.style.minHeight = height;
+					td.style.minWidth = width;
+					td.style.height = height;
+					td.style.width = width;
+					//td.onclick = setKnight(this);
+					td.id = i+"."+j;
+					(i+j) % 2 == 0 ? td.className = "EvenSquare" : td.className = "OddSquare";
+					tr.appendChild(td)
+				    }
+				    tbdy.appendChild(tr);
+				}
+				tbl.appendChild(tbdy);
+				if (existingTable != 0) {
+					document.getElementById("startingPositionTable").removeChild(existingTable)
+				}
+				document.getElementById("startingPositionTable").appendChild(tbl);
+				existingTable = tbl
+				//document.getElementById("startingPositionTable").innerHTML =  tbl;
+				//setValues();
+				//knightPosition = "1.1"
+				document.getElementById(knightPosition).innerHTML = "<img height=\"24px\" src=\"/static/images/Chess_nlt60.png\">";
+				setKnight();
+			    }
+			
 		</script>
+		<!--style type="text/css" src="/static/styles/chess.css">
+			
+		</style-->
     <style>
+	.tourChoiceSegment {
+	font-size: 16px;
+	text-align: left;
+	background-size: 180px 220px;
+	display: inline-block;
+	}
+	#boardSize {
+	background: #F7FE2E;
+	color: #F7FE2E;
+	}
+	#startingPosition {
+	background: #F7FE2E;
+	color: #F7FE2E;
+	}
+	.selectorContent{
+	background-color:#FAFAFA;/*#F7FE2E;*/
+	/*margin: 5px;*/
+	height:80px;
+	}
+    </style>
+    
+	<style>
     table {
     border-collapse: collapse;
     }
 	td {
-    padding: 0px;
-    border: 1px solid black;
+	padding: 0px;
+	border: 1px solid black;
 	}
-	.tourChoiceSegment {
-	font-size: 16px;
-	text-align: justify;
-	background-size: 180px 160px;
-	display: inline-block;
+	.EvenSquare, .OddSquare {
+	font-size: 36px;
+	text-align: center;
 	}
-	#boardSize {
+	.EvenSquare {
 	background: #59751D;
 	color: #FFFFFF;
 	}
-	#startingPosition {
+	.OddSquare {
 	background: #FAFAFA;
 	color: #000000;
 	}
     </style>
+    
 	</head>
-	<body>
+	<body onload="tableCreate();">
 {% if Error %}
 	<p>{{Error}}</p>
 {% endif %}
 
-<div id="selectionContainer" style="background-color:#FF0000;height:80px;width:1030px;text-align: justify;margin-bottom: 20px">
+<div id="selectionContainer" style="background-color:#BEDFEE;height:80px;width:1030px;text-align: justify;margin-bottom: 0px; margin-right: 20px; border: thick">
 <h3>The Knight's Tour</h3>
-<div id="titleContent" style="background-color:#D8D8D8;margin: 5px;">
+<div id="titleContent" style="background-color:#BEDFEE;margin: 20px;width: 800px;">
 <p>
 	Welcome to the knight's tour, a centries-old challenge of moving a
 	knight on a chess board to every square exactly once.
@@ -78,18 +182,14 @@
 <form id="tour_choice_form" name="chess_input" action="/knights_tour/choose_tour/" method="post">{% csrf_token %}
 	
 	<!--div id="boardSize" class="tour_choice_segment"-->
-	<div id="selectionContainer" style="height:320px;width:1010px;text-align: justify;">
-	<div id="boardSizes" style="background-color:#00FF00;height:320px;width:270px;margin-left: 20px;float:left;">
-
+	<div id="selectionContainer" style="height:240px;width:1010px;text-align: justify;">
+	<div id="boardSizes" style="background-color:#FAFAFA;height:200px;width:160px;margin-left: 20px;float:left;">
+	<!--background-color:#F7FE2E-->
 
 	<h4>Board Size</h4>
-	<div id="boardSizesContent" style="background-color:#D8D8D8;margin: 5px;height:250px;">	
-	<p>
-	For best performance, choose a number between 5 and 10.
-	The board need not be a square. You could, for example, have 7 rows and 8 columns.</br></br>
-	</p>
+	<div id="boardSizesContent" class="selectorContent" title="For best performance, choose a number between 5 and 10.The board need not be a square. You could, for example, have 7 rows and 8 columns.">	
 	
-	<select name="rows" id="rows">
+	<select name="rows" id="rows" onchange="tableCreate();">
 		<option value="4">4</option>
 		<option value="5">5</option>
 		<option value="6">6</option>
@@ -103,7 +203,7 @@
 	Rows
 	<!-- put tab here style.padding-left:5em &#09;-->
 	</br></br>
-	<select name="columns" id="columns" >
+	<select name="columns" id="columns" onchange="tableCreate();">
 		<option value="4">4</option>
 		<option value="5">5</option>
 		<option value="6">6</option>
@@ -115,14 +215,30 @@
 		<option value="12">12</option>
 	</select>
 	Columns
+	<!--p>
+	For best performance, choose a number between 5 and 10.
+	The board need not be a square. You could, for example, have 7 rows and 8 columns.</br></br>
+	</p-->
+	</div>
+	<h4>Tour Type</h4>
+	<div id="tourTypeContent" class="selectorContent" title="A closed tour is one in which the knight's final position is one knight's move from the starting position. It typically takes much longer to find a solution to a closed tour, if such a solution exists. An open tour is one in which the knight visits every square exactly once, but the final position could be any square on the board.">
+
+	<input type="radio" name="tour_type" value="Open" checked>Open
+	<!-- put tab here style.padding-left:5em &#09;-->
+	</br></br><input type="radio" name="tour_type" value="Closed">Closed
+	<!--p> A closed tour is one in which the knight's final position is one knight's move from the starting position. 
+	It typically takes much longer to find a solution to a closed tour, if such a solution exists.
+	An open tour is one in which the knight visits every square exactly once, but the final position could be any square on the board.
+	</p-->
 	</div>
 	</div>
-	<div id="startingPositions" style="background-color:#FFFF00;height:320px;width:330px;float:left;margin-left: 20px">
+	<div id="startingPositions" style="background-color:#FFFFFF;height:300px;width:800px;float:right;margin-left: 20px">
 
 	<!--div id="startingPosition" class="tourChoiceSegment"-->
 	<h4>Knight's Starting Position</h4>
-	<div id="startingPositionContent" style="background-color:#D8D8D8;margin: 5px;height:250px;">
-	<select name="starting_row" id="starting_row" onclick="validateStartRow();" onblur="validateStartRow();">
+	<div id="startingPositionContent" class=selectorContents>
+		<p>Click a square on the board to move the knight.</p>
+	<!--select name="starting_row" id="starting_row" onchange="validateStartRow();">
 		<option value="1" selected="1">1</option>
 		<option value="2">2</option>
 		<option value="3">3</option>
@@ -138,8 +254,8 @@
 	</select>
 	Starting Row
 	<!-- put tab here style.padding-left:5em &#09;-->	
-	</br></br>
-	<select name="starting_column" id="starting_column" onclick="validateStartColumn();" onblur="validateStartColumn();">
+	<!--/br></br-->
+	<!--select name="starting_column" id="starting_column" style="margin: 10px" onchange="validateStartColumn();">
 		<option value="1" selected="1">1</option>
 		<option value="2">2</option>
 		<option value="3">3</option>
@@ -153,30 +269,34 @@
 		<option value="11">11</option>
 		<option value="12">12</option>
 	</select>
-	Starting Column	
+	Starting Column-->
+	
+	<div id="startingPositionTable"></div>
 	</div>
+	<input type="hidden" value="1" name="starting_column" id="starting_column" onchange="validateStartColumn();"></div>
+	<input type="hidden" value="1" name="starting_row" id="starting_row" onchange="validateStartRow();"></div>
+	
 	</div>
 	
-	<div id="tourTypes" style="background-color:#0000FF;height:320px;width:350px;float:left;margin-left: 20px">
-	<!--div id="tour_type" class="tour_choice_segment" style="background-color:#FFD700"-->
-	
-	
+	<!--div id="tourTypes" style="background-color:#F7FE2E;height:500px;width:160px;float:left;margin-left: 20px">
+	<!--"this has been commented out for a while" div id="tour_type" class="tour_choice_segment" style="background-color:#FFD700">
 	<h4>Tour Type</h4>
-	<div id="tourTypeContent" style="background-color:#D8D8D8;margin: 5px;height:250px;">
+	<div id="tourTypeContent" class="selectorContent">
+
+	<input type="radio" name="tour_type" value="Open" checked>Open
+	<!-- put tab here style.padding-left:5em &#09;>
+	</br></br><input type="radio" name="tour_type" value="Closed">Closed
 	<p> A closed tour is one in which the knight's final position is one knight's move from the starting position. 
 	It typically takes much longer to find a solution to a closed tour, if such a solution exists.
 	An open tour is one in which the knight visits every square exactly once, but the final position could be any square on the board.
 	</p>
-	<input type="radio" name="tour_type" value="Open" checked>Open
-	<!-- put tab here style.padding-left:5em &#09;-->
-	</br></br><input type="radio" name="tour_type" value="Closed">Closed
 	</div>
 	</div>
 	</br></br>
-	</div>
-	<input type="submit" value="Start Tour" id="tour_button" onclick="validateStartColumn();validateStartRow();setTimeout(disableButton, 10);">
+	</div-->
+	<input type="submit" value="Start Tour" style="margin: 50px 0px 0px 20px" id="tour_button" onclick="setTimeout(disableButton, 10);">
 </form>
-<p><a href="/" style="float:none;">Return to homepage</a></p>
+<p><a href="/" style="float:left; margin: 20px">Return to homepage</a></p>
 
 <!--form name="loginform" action="/knights_tour/index/" method="post">{% csrf_token %}
 	{{ form.as_p }}

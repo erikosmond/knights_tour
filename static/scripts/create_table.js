@@ -1,19 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
-	<title>Chess Board</title>
-    <script>
-	var cell_index = 0;
+//This is not ready yet, I need to pass in parameters and not just set the table width and height with django
+        var cell_index = 0;
 	//cells = ["1.1", "2.3", "1.5", "3.4", "5.5", "4.3", "5.1", "3.2", "4.4", "5.2", "3.1", "1.2", "2.4", "4.5", "5.3", "4.1", "2.2", "1.4", "3.5", "5.4", "4.2", "2.1", "1.3", "2.5", "3.3"];
 	cells = "{{ cells }}".replace(/&#39;/g,"\"").substring(1,parseInt("{{ len_positions }}"))
         cells_array = JSON.parse("[" + cells + "]")
         var sleep = 1000
 	function setValues() {
-	    //cells = cells.replace(/&#39;/g,"\"").substring(1,parseInt(len_positions));
-	    //alert(cells)
-	    //cells_array = JSON.parse("[" + cells + "]");
 	    var previous = false;
 	    setTimeout(function () {
 
@@ -55,33 +46,3 @@
         body.appendChild(tbl)
         setValues();
     }
-    </script>
-    <style>
-    table {
-    border-collapse: collapse;
-    }
-	td {
-    padding: 0px;
-    border: 1px solid black;
-	}
-	.EvenSquare, .OddSquare {
-	font-size: 36px;
-	text-align: center;
-	}
-	.EvenSquare {
-	background: #59751D;
-	color: #FFFFFF;
-	}
-	.OddSquare {
-	background: #FAFAFA;
-	color: #000000;
-	}
-    </style>
-<!--How do I pass quotes into a javascript arguement-->
-</head>
-<body onload="tableCreate();"> 
-    <p>Solution found in {{count}} moves</p>
-    <a href="/knights_tour/choose_tour/">Do another tour</a></br></br>
-    <a href="https://github.com/erikosmond/knights_tour">Get the source code</a>
-</body>
-</html>
