@@ -25,7 +25,7 @@ def choose_tour(request):
                 closed = True
             #get speed and size from the user as well
             verbosity = 0
-            move_limit = 150000
+            move_limit = 80000
             if not rows or not columns or not starting_row or not starting_column:
                 return HttpResponse("One or more fields are missing")
             starting_location = str(starting_row) + '.' + str(starting_column)
