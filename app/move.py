@@ -27,6 +27,7 @@ class Move(object):
         self.knight = Knight(position)
         self.knight.visited_positions = visited_positions
         self.position = position
+        ###is this the source of the bug somehow?
         self.possible_moves = self.knight.get_possible_moves() #should be able to remove previous position/ None
 
     def _check_closed_tour(self, move_weight, end_positions):

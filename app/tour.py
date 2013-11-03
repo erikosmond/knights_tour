@@ -3,6 +3,7 @@ from pieces import Knight, GameError
 from verbose import Verbose
 from move import Move
 from trace import Trace
+import time
 
 class MoveError(Exception):
     
@@ -13,7 +14,7 @@ class MoveError(Exception):
 
 class Tour(object):
 
-    def __init__(self, rows, columns, start_position, verbosity=0, closed=False, move_limit=None):
+    def __init__(self, rows, columns, start_position, verbosity=0, closed=False, move_limit=None, time_limit=None):
         self.verbosity = Verbose(verbosity)
         self.closed = closed
         self.board = Board(rows, columns, self.verbosity.verbose_int)
@@ -21,22 +22,28 @@ class Tour(object):
         self.retrace = 0 #just in case I want to set up a retrace counter
         self.end_positions = None
         self.move_limit = move_limit
+        self.time_limit = time_limit
         
     def run(self):
         self.knight = Knight(self.start_position, self.verbosity.verbose_int)
+        self.knight.add_to_board(self.board)
         if self.closed == True:
             self.end_positions = self.knight.get_possible_moves()
         count = 0
+        duration = 0
         largest_tour = 0
+        start = time.time()
         complete = False
-        while len(self.knight.visited_positions) < self.board.size and self._check_limit(count):
+        while len(self.knight.visited_positions) < self.board.size and self._check_limit(count, duration):
             #garner stats
             largest_tour = self.verbosity.min_max(self, largest_tour)
             self.verbosity.potential_OBOB(self)
             self.verbosity.progress(count)
             if len(self.knight.visited_positions) < 4:
                 largest_tour = len(self.knight.visited_positions)
-            
+            if self.time_limit != None and count%1000 == 0:
+                duration = time.time()-start
+                
             #find the next move
             possible_positions = self.knight.get_possible_moves()
             self.verbosity.possible_moves(self.knight.get_current_position(), possible_positions)
@@ -59,7 +66,8 @@ class Tour(object):
                     raise MoveError(best_move.get_position())
                 t = Trace(count, best_move.get_position(), retrace=False)
             count += 1
-        return self.knight, count, self.board
+        end_time = round(time.time() - start,3)
+        return self.knight, count, self.board, end_time
     
     def _check_closed_tour(self, position, count):
         if len(self.knight.visited_positions) == (self.board.size -1) and self.closed == True:
@@ -72,10 +80,10 @@ class Tour(object):
                 t = Trace(count, previous_position, retrace=True)
             return True 
     
-    def _check_limit(self, count):
-        if self.move_limit == None:
-            return True
-        elif count > self.move_limit:
+    def _check_limit(self, count, duration):
+        if self.move_limit != None and count > self.move_limit:
+            raise GameError()
+        elif self.time_limit != None and duration > self.time_limit:
             raise GameError()
         else:
             return True

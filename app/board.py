@@ -124,3 +124,7 @@ class Position(object):
         if position in self.failures:
             return True
         return False
+    
+    def reset_failures(self):
+	self.failures = []
+    

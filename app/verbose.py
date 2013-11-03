@@ -3,7 +3,7 @@ class Verbose(object):
     Initialized = False
     
     def __init__(self, verbosity, show_info=False):
-        assert type(verbosity) is int, "verbose takes an integer value of 0-31"
+        assert type(verbosity) is int, "verbose takes an integer value of 0-1023"
         self.verbose_int = verbosity
         self.info = """
         bit 0[-1](1)    - max/min values
@@ -77,7 +77,7 @@ class Verbose(object):
 
     def progress(self, count, chess_piece=None):
         if self.progress_switch:
-            if count % 10000 == 0:
+            if count % 1 == 0: #was 10000
                 print str(count), "moves tried so far"
             if chess_piece != None:
                 final_positions = []
@@ -104,7 +104,8 @@ class Verbose(object):
                             break
                     if knight_present == True:
                         continue
-                    for i in chess_piece.trials:
+                    '''
+                    for i in chess_piece.trials: #section commented out 11-2-13
                         #must convert coordinate back into position; should be able to get rid of the if statement
                         if type(i) is tuple and len(i) == 2:
                             i = Position(row=i[0], column=i[1], board=board, verbosity=0) 
@@ -115,7 +116,8 @@ class Verbose(object):
                                 break
                         if fail_present == True:
                             break
-                    if knight_present == False and fail_present == False:
+                    '''
+                    if knight_present == False:# and fail_present == False:  #second check commented out 11-2-13
                         print "x\t",
                 print "\n"
             print "\n\n"

@@ -1,4 +1,5 @@
 from verbose import Verbose
+from board import Position
 
 class GameError(Exception):
     def __init__(self):
@@ -7,6 +8,7 @@ class GameError(Exception):
 class ChessPiece(object):
 
     knight_moves = None #This ensures I only calculate legal knight moves once
+    debug_position = (13, 13)# (6, 4)
         
     def create_moves(self):
         all_moves = tuple()
@@ -57,9 +59,11 @@ class ChessPiece(object):
         
     def retrace(self):
         failed_position = self.visited_positions.pop()
+        #print self.visited_positions
         try:
             previous_position = self.visited_positions[-1]
         except:
+            print "retrace exception"
             self.verbosity.final_positions(self)
             raise GameError()
         self.set_position(previous_position, retrace=True)
@@ -68,24 +72,31 @@ class ChessPiece(object):
 
         return previous_position
 
-    def get_possible_moves(self): 
-        possible_moves = [ ] 
-        for i in self.moves:
-            possible_position = self.get_current_position().get_new_position(i[0], i[1])
-            if self._valid_position(possible_position):
-                possible_moves.append(possible_position)
+    def get_possible_moves(self):
+        possible_moves = [ ]
+        for i in self.all_possible_moves[self.get_current_position().coordinate]:
+            if self._valid_position(i):
+                #when these positions are reused, they should have no memory of previous failed positions as they already had to be retraced
+                i.reset_failures() 
+                possible_moves.append(i)
         return possible_moves       
         
     def _valid_position(self, position):
-        if position.fits_on_board != True:
+        if position.fits_on_board != True: #should be able to remove this check
             return False
         
         if self.get_current_position().check_failed_position(position) == True:
             #if it's already a failed position, return False
+            #debug info
+            if self.get_current_position().coordinate == self.debug_position:
+                print "failed position", position
             return False
             
         for i in self.visited_positions:
             if position == i:
+                #debug info
+                if self.get_current_position().coordinate == self.debug_position:
+                    print "visited position", i
                 return False  
         return True 
         
@@ -102,7 +113,7 @@ class Knight(ChessPiece):
         self.moves = ChessPiece.knight_moves
         self.verbosity = Verbose(verbosity)
         
-    def get_tour(self):
+    def get_tour(self): #this should be moved to parent class
         final_tour = []
         for position in self.get_visited_positions():
             info = str(position.row) + '.' + str(position.column) 
@@ -113,3 +124,32 @@ class Knight(ChessPiece):
             final_tour.append(info)
         return final_tour
     
+    def add_to_board(self, board):
+        moves = {}
+        for row in range(1, board.rows+1):
+            for column in range(1, board.columns+1):
+                p = Position(row, column, board, self.verbosity.verbose_int)
+                possible_positions = []
+                for i in self.moves:
+                    possible_position = p.get_new_position(i[0], i[1])
+                    if possible_position.fits_on_board:
+                        possible_positions.append(possible_position)
+                moves[p.coordinate] = possible_positions
+        Knight.all_possible_moves = moves
+        
+    
+    #for every position on the board, I want to know all the knights possible moves from that position
+    #add knight to board - knight.add_to_board(board)
+    # moves = {}
+    # for row in board.rows
+    #   for column in board.columns
+    #       p = Position(row, column, board, self.verbosity)
+    #       possible_positions = []
+    #       for i in self.moves:
+    #           possible_position = p.get_new_position(i[0], i[1])
+    #           if position.fits_on_board:
+    #              possible_positions.append(possible_position)
+    #       moves[p.coordinate] = possible_positions
+    # self.possible_moves = moves
+    
+    #{'1.1':['2.3', '3.2']}

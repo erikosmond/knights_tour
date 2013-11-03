@@ -1,23 +1,23 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+	
+	<meta charset="utf-8">
 	<title>Chess Board</title>
+    	<link rel="stylesheet" href="{% static "css/global.css" %}">
+	<script type="text/javascript" src="{% static "js/chess.js" %}"></script>
+    
     <script>
 	var cell_index = 0;
-	//cells = ["1.1", "2.3", "1.5", "3.4", "5.5", "4.3", "5.1", "3.2", "4.4", "5.2", "3.1", "1.2", "2.4", "4.5", "5.3", "4.1", "2.2", "1.4", "3.5", "5.4", "4.2", "2.1", "1.3", "2.5", "3.3"];
-	cells = "{{ cells }}".replace(/&#39;/g,"\"").substring(1,parseInt("{{ len_positions }}"))
-        cells_array = JSON.parse("[" + cells + "]")
-        var sleep = 1000
+	var sleep = 1000
 	function setValues() {
-	    //cells = cells.replace(/&#39;/g,"\"").substring(1,parseInt(len_positions));
-	    //alert(cells)
-	    //cells_array = JSON.parse("[" + cells + "]");
+	    var cells = "{{ cells }}".replace(/&#39;/g,"\"").substring(1,parseInt("{{ len_positions }}"))
+	    var cells_array = JSON.parse("[" + cells + "]")
 	    var previous = false;
 	    setTimeout(function () {
-
-		document.getElementById(cells_array[cell_index]).innerHTML = "<img width=\"40px\" src=\"/static/images/Chess_nlt60.png\">";
+		document.getElementById(cells_array[cell_index]).innerHTML = '<img width=\"40px\" src="{% static "images/Chess_nlt60.png" %}">';
 		if (cell_index>0) {
 		    document.getElementById(cells_array[cell_index-1]).innerHTML =  cell_index-1;
 		}
@@ -29,59 +29,84 @@
 		sleep = Math.max(sleep,150)
 	    }, sleep)
 	}
-	
-	function tableCreate() {
-        var numRows = parseInt("{{ rows }}"),
-            numColumns = parseInt("{{ columns }}"),
-            body = document.body,
-            tbl = document.createElement('table'),
-            tbdy = document.createElement('tbody');
-    
-        tbl.style.height = "{{ table_height }}".replace(/&quot;/g,"")
-        tbl.style.width = "{{ table_width }}".replace(/&quot;/g,"")
-        for(var i=1; i<=numRows; i++) {
-            var tr = document.createElement('tr');
-            for(var j=1; j<=numColumns; j++) {
-                var td = document.createElement('td');
-                td.style.height = "{{ cell_size }}".replace(/&quot;/g,"");
-                td.style.width = "{{ cell_size }}".replace(/&quot;/g,"");
-                td.id = i+"."+j;
-                (i+j) % 2 == 0 ? td.className = "EvenSquare" : td.className = "OddSquare";
-                tr.appendChild(td)
-            }
-            tbdy.appendChild(tr);
-        }
-        tbl.appendChild(tbdy);
-        body.appendChild(tbl)
-        setValues();
-    }
     </script>
-    <style>
-    table {
-    border-collapse: collapse;
-    }
-	td {
-    padding: 0px;
-    border: 1px solid black;
-	}
-	.EvenSquare, .OddSquare {
-	font-size: 36px;
-	text-align: center;
-	}
-	.EvenSquare {
-	background: #59751D;
-	color: #FFFFFF;
-	}
-	.OddSquare {
-	background: #FAFAFA;
-	color: #000000;
-	}
-    </style>
-<!--How do I pass quotes into a javascript arguement-->
-</head>
-<body onload="tableCreate();"> 
-    <p>Solution found in {{count}} moves</p>
-    <a href="/knights_tour/choose_tour/">Do another tour</a></br></br>
-    <a href="https://github.com/erikosmond/knights_tour">Get the source code</a>
+    
+    
+    
+	<!-- Bootstrap -->
+		<link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet" media="screen">
+	    
+		<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!--[if lt IE 9]>
+		  <script src="{% static "js/html5shiv.js" %}" </script>
+		  <script src="{% static "js/respond.min.js" %}" </script>
+		<![endif]-->
+		
+		<!-- Custom styles for this template -->
+		<!--link href="carousel.css" rel="stylesheet"-->
+		
+			
+	</head>
+	
+	<body>
+		<!--div class="navbar-wrapper">
+		  <div class="container">
+	    
+		    <div class="navbar navbar-inverse navbar-static-top">
+		      <div class="container">
+			<div class="navbar-header">
+			  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+			    <span class="icon-bar"></span>
+			    <span class="icon-bar"></span>
+			    <span class="icon-bar"></span>
+			  </button>
+			  <a class="navbar-brand" href="#">Next Everest</a>
+			</div>
+			<div class="navbar-collapse collapse">
+			  <ul class="nav navbar-nav">
+			    <li><a href="/"><i class="icon-home"></i>Home</a></li>
+			    <li><a href="/anagreat/create_anagram">Anagreat</a></li>
+			    <li class="active"><a href="/knights_tour/choose_tour">Knights Tour</a></li>
+
+			  </ul>
+			</div>
+		      </div>
+		    </div>
+	    
+		  </div>
+		</div-->    
+    
+    
+		<!--bootstrap2 nav starts here-->
+   <div class="navbar navbar-inverse">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">Next Everest</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+			    <li><a href="/"><i class="icon-home"></i>Home</a></li>
+			    <li><a href="/anagreat/create_anagram">Anagreat</a></li>
+			    <li class="active"><a href="/knights_tour/choose_tour">Knights Tour</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+    
+    
+    
+<body onload="tableCreate('{{ rows }}','{{ columns }}','{{ cell_size }}',false); setValues();">
+
+    <div class="container">    
+	<p>Solution found in {{count}} moves and {{end_time}} seconds.</p>
+	<a href="/knights_tour/choose_tour/">Do another tour</a></br></br>
+	<a href="https://github.com/erikosmond/knights_tour">Get the source code</a>
+	<div id="startingPositionTable"></div>
+    </div>
 </body>
 </html>
